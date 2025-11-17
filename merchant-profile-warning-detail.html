@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商户资料预警详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 邮政绿色主题 */
+        .bg-postal-green { background-color: #00A651; }
+        .text-postal-green { color: #00A651; }
+        .border-postal-green { border-color: #00A651; }
+        .bg-postal-green-dark { background-color: #008A43; }
+        
+        /* 移动端容器 */
+        .mobile-container {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        
+        .mobile-content {
+            padding: 0 16px;
+        }
+        
+        /* 邮政卡片样式 */
+        .postal-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* 响应式文本 */
+        .responsive-text-xs { font-size: 12px; }
+        .responsive-text-sm { font-size: 13px; }
+        .responsive-text-base { font-size: 14px; }
+        .responsive-text-lg { font-size: 16px; }
+        
+        @media (min-width: 640px) {
+            .responsive-text-xs { font-size: 14px; }
+            .responsive-text-sm { font-size: 14px; }
+            .responsive-text-base { font-size: 16px; }
+            .responsive-text-lg { font-size: 18px; }
+        }
+        
+        /* 指标卡片样式 */
+        .indicator-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .indicator-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, rgba(79, 70, 229, 0.1) 50%, transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .indicator-card:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .indicator-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            border-color: #d1d5db;
+        }
+        
+        .indicator-title {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 8px;
+            position: relative;
+            margin: 0;
+        }
+        
+        .alert-high .indicator-title {
+            background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+            border-bottom: 1px solid #ef4444;
+        }
+        
+        .alert-medium .indicator-title {
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+            border-bottom: 1px solid #f59e0b;
+        }
+        
+        .alert-low .indicator-title {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+            border-bottom: 1px solid #10b981;
+        }
+        
+        .indicator-name {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            color: #1f2937;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .indicator-icon {
+            margin-right: 8px;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        
+        .card-content {
+            padding: 16px;
+            background: white;
+        }
+        
+        /* 状态徽章样式 */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .status-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .indicator-card:hover .status-badge::before {
+            left: 100%;
+        }
+        
+        .status-high {
+            background: #f03e3e;
+            color: white;
+            border: 1px solid #f03e3e;
+        }
+        
+        .indicator-card:hover .status-high {
+            background: #e92525;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        }
+        
+        .status-medium {
+            background: #d97706;
+            color: white;
+            border: 1px solid #d97706;
+        }
+        
+        .indicator-card:hover .status-medium {
+            background: #b45309;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(217, 119, 6, 0.2);
+        }
+        
+        .status-low {
+            background: #16a34a;
+            color: white;
+            border: 1px solid #16a34a;
+        }
+        
+        .indicator-card:hover .status-low {
+            background: #15803d;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+        }
+        
+        /* 判定原因样式 */
+        .indicator-reason {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        /* 提示工具样式 */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 6px;
+        }
+        
+        .tooltip-icon {
+            color: #9CA3AF;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 4px;
+            border-radius: 50%;
+            position: relative;
+            z-index: 1000;
+            pointer-events: auto;
+        }
+        
+        .tooltip-icon:hover {
+            color: #4f46e5;
+            background-color: rgba(79, 70, 229, 0.1);
+            transform: scale(1.1);
+        }
+        
+        .tooltip-content {
+            display: none;
+            position: fixed;
+            background: #1F2937;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            max-width: 280px;
+            white-space: normal;
+            z-index: 99999 !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+        }
+        
+        .tooltip-content::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #1F2937;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
+        .stats-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        
+        /* 预警级别过滤样式 */
+        .level-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #6b7280;
+        }
+        
+        .filter-btn.active {
+            background: #00A651;
+            color: white;
+            border-color: #00A651;
+        }
+        
+        .filter-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 mobile-container">
+    <!-- 状态栏 -->
+    <div class="bg-postal-green h-6"></div>
+    
+    <!-- 头部导航 -->
+    <div class="bg-postal-green text-white">
+        <div class="mobile-content flex items-center justify-between py-3">
+            <div class="flex items-center">
+                <button onclick="goBack()" class="mr-3">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <h1 class="responsive-text-lg font-medium">商户资料预警详情</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button>
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商户基本信息 -->
+    <!-- <div class="mobile-content mt-4">
+        <div class="postal-card p-4">
+            <h3 class="text-base font-medium text-gray-900 mb-4">
+                <i class="fas fa-store mr-2 text-postal-green"></i>
+                商户基本信息
+            </h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-600">商户名称：</span>
+                    <span class="font-medium">张三便利店</span>
+                </div>
+                <div>
+                    <span class="text-gray-600">商户编号：</span>
+                    <span class="font-medium">M202412300001</span>
+                </div>
+                <div>
+                    <span class="text-gray-600">注册时间：</span>
+                    <span class="font-medium">2024-01-15</span>
+                </div>
+                <div>
+                    <span class="text-gray-600">经营状态：</span>
+                    <span class="font-medium text-green-600">正常营业</span>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+   
+
+    <!-- 商户资料预警指标 -->
+    <div class="mobile-content mt-4">
+        <div class="postal-card p-4">
+            <h3 class="text-base font-medium text-gray-900 mb-4">
+                <i class="fas fa-exclamation-triangle mr-2 text-postal-green"></i>
+                商户资料预警指标
+            </h3>
+            
+            <!-- 级别过滤器 -->
+            <div class="level-filter">
+                <button class="filter-btn active" onclick="filterByLevel('all')">全部</button>
+                <button class="filter-btn" onclick="filterByLevel('high')">高度关注</button>
+                <button class="filter-btn" onclick="filterByLevel('medium')">中度关注</button>
+                <button class="filter-btn" onclick="filterByLevel('low')">轻度关注</button>
+            </div>
+            
+            <div class="space-y-3">
+                <!-- 高度关注指标 -->
+                <!-- 通道复审驳回 -->
+                <div class="indicator-card alert-high" data-level="high">
+                    <div class="indicator-title">
+                        <div class="indicator-name">
+                            <i class="fas fa-exclamation-triangle indicator-icon text-red-500"></i>
+                            <span>通道复审驳回</span>
+                            <div class="tooltip">
+                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
+                                <div class="tooltip-content">
+                                    通道复审驳回指标说明：监测商户在支付通道复审过程中被驳回的情况，频繁驳回可能存在资质问题。
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-high">高度关注</span>
+                    </div>
+                    
+                    <div class="card-content">
+                        <div class="indicator-reason">判定原因：近30天内被驳回3次</div>
+                    </div>
+                </div>
+
+                <!-- 门头照历史重复次数 -->
+                <div class="indicator-card alert-high" data-level="high">
+                    <div class="indicator-title">
+                        <div class="indicator-name">
+                            <i class="fas fa-copy indicator-icon text-red-500"></i>
+                            <span>门头照历史重复次数</span>
+                            <div class="tooltip">
+                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
+                                <div class="tooltip-content">
+                                    门头照历史重复指标说明：监测商户门头照片在系统中的重复使用情况，重复使用可能存在虚假进件风险。
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-high">高度关注</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="indicator-reason">判定原因：该门头照已被5个不同商户使用</div>
+                    </div>
+                </div>
+
+                <!-- 中度关注指标 -->
+                <!-- 小微进件次数 -->
+                <div class="indicator-card alert-medium" data-level="medium">
+                    <div class="indicator-title">
+                        <div class="indicator-name">
+                            <i class="fas fa-user-plus indicator-icon text-orange-500"></i>
+                            <span>小微进件次数</span>
+                            <div class="tooltip">
+                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
+                                <div class="tooltip-content">
+                                    小微进件次数指标说明：监测商户以小微商户身份进件的频次，过于频繁可能存在规避监管风险。
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-medium">中度关注</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="indicator-reason">判定原因：近6个月内小微进件8次</div>
+                    </div>
+                </div>
+
+                <!-- 场景照历史重复次数 -->
+                <div class="indicator-card alert-medium" data-level="medium">
+                    <div class="indicator-title">
+                        <div class="indicator-name">
+                            <i class="fas fa-images indicator-icon text-orange-500"></i>
+                            <span>场景照历史重复次数</span>
+                            <div class="tooltip">
+                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
+                                <div class="tooltip-content">
+                                    场景照历史重复指标说明：监测商户经营场景照片的重复使用情况，重复使用可能存在虚假经营风险。
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-medium">中度关注</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="indicator-reason">判定原因：该场景照已被3个不同商户使用</div>
+                    </div>
+                </div>
+
+                <!-- 收银台照历史重复次数 -->
+                <div class="indicator-card alert-medium" data-level="medium">
+                    <div class="indicator-title">
+                        <div class="indicator-name">
+                            <i class="fas fa-cash-register indicator-icon text-orange-500"></i>
+                            <span>收银台照历史重复次数</span>
+                            <div class="tooltip">
+                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
+                                <div class="tooltip-content">
+                                    收银台照历史重复指标说明：监测商户收银台照片的重复使用情况，重复使用可能存在虚假经营场所风险。
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-medium">中度关注</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="indicator-reason">判定原因：该收银台照已被2个不同商户使用</div>
+                    </div>
+                </div>
+
+                <!-- 轻度关注指标 -->
+                <!-- 非小微进件次数 -->
+                <div class="indicator-card alert-low" data-level="low">
+                    <div class="indicator-title">
+                        <div class="indicator-name">
+                            <i class="fas fa-building indicator-icon text-green-500"></i>
+                            <span>非小微进件次数</span>
+                            <div class="tooltip">
+                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
+                                <div class="tooltip-content">
+                                    非小微进件次数指标说明：监测商户以非小微商户身份进件的频次，需关注进件合规性。
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-low">轻度关注</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="indicator-reason">判定原因：近6个月内非小微进件4次</div>
+                    </div>
+                </div>
+
+                <!-- 照片导入方式异常 -->
+                <div class="indicator-card alert-low" data-level="low">
+                    <div class="indicator-title">
+                        <div class="indicator-name">
+                            <i class="fas fa-upload indicator-icon text-green-500"></i>
+                            <span>照片导入方式异常</span>
+                            <div class="tooltip">
+                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
+                                <div class="tooltip-content">
+                                    照片导入方式异常指标说明：监测商户照片上传方式的异常情况，异常方式可能存在合规风险。
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-low">轻度关注</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="indicator-reason">判定原因：检测到批量导入行为</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- 底部操作按钮 -->
+    <div class="mobile-content mt-6 mx-4 mb-4 pb-6 space-y-3">
+        <button onclick="goBack()" class="w-full bg-postal-green text-white py-3 rounded-lg font-medium hover:bg-postal-green-dark transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            返回
+        </button>
+    </div>
+
+    <script>
+        /**
+         * 返回上一页
+         */
+        function goBack() {
+            window.history.back();
+        }
+
+        /**
+         * 切换提示信息显示
+         * @param {HTMLElement} icon - 点击的提示图标元素
+         * @param {Event} event - 点击事件对象
+         */
+        function toggleTooltip(icon, event) {
+            event.stopPropagation();
+            
+            // 隐藏所有其他提示
+            document.querySelectorAll('.tooltip-content').forEach(tooltip => {
+                if (tooltip !== icon.nextElementSibling) {
+                    tooltip.style.display = 'none';
+                }
+            });
+            
+            const tooltip = icon.nextElementSibling;
+            const isVisible = tooltip.style.display === 'block';
+            
+            if (isVisible) {
+                tooltip.style.display = 'none';
+            } else {
+                // 计算位置
+                const rect = icon.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                
+                let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                let top = rect.top - tooltipRect.height - 10;
+                
+                // 边界检查
+                if (left < 10) left = 10;
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    left = window.innerWidth - tooltipRect.width - 10;
+                }
+                if (top < 10) {
+                    top = rect.bottom + 10;
+                }
+                
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                tooltip.style.display = 'block';
+            }
+        }
+
+        /**
+         * 获取URL参数
+         * @param {string} name - 参数名
+         * @returns {string|null} 参数值
+         */
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        /**
+         * 根据级别过滤显示指标
+         * @param {string} level - 过滤级别 ('all', 'high', 'medium', 'low')
+         */
+        function filterByLevel(level) {
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 显示/隐藏指标卡片
+            document.querySelectorAll('.indicator-card').forEach(card => {
+                if (level === 'all' || card.dataset.level === level) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        /**
+         * 页面初始化
+         */
+        function initPage() {
+            // 根据URL参数过滤显示
+            const levelParam = getUrlParameter('level');
+            if (levelParam && ['high', 'medium', 'low'].includes(levelParam)) {
+                filterByLevel(levelParam);
+                // 更新按钮状态
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[onclick="filterByLevel('${levelParam}')"]`).classList.add('active');
+            }
+            
+            // 点击页面其他地方隐藏提示
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.tooltip')) {
+                    document.querySelectorAll('.tooltip-content').forEach(tooltip => {
+                        tooltip.style.display = 'none';
+                    });
+                }
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>

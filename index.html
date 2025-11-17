@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>邮付管家</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'postal-green': '#00A651',
+                        'postal-green-dark': '#008A44',
+                        'postal-green-light': '#E8F5E8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 移动端适配样式 */
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        .mobile-container {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #f5f5f5;
+        }
+
+        /* 邮政绿色主题渐变背景 */
+        .postal-gradient-bg {
+            background: linear-gradient(135deg, #00A651 0%, #00d084 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .postal-gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .postal-gradient-bg::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        /* 用户信息卡片 */
+        .user-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* 功能网格 */
+        .function-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 16px;
+        }
+
+        /* 功能卡片 */
+        .function-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .function-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 166, 81, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .function-card:hover::before {
+            left: 100%;
+        }
+
+        .function-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 166, 81, 0.2);
+        }
+
+        .function-card:active {
+            transform: translateY(-2px);
+        }
+
+        .function-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 12px;
+            background: linear-gradient(135deg, #00A651 0%, #00d084 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .function-card:hover .function-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .function-icon i {
+            font-size: 28px;
+            color: white;
+        }
+
+        .function-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1px;
+        }
+
+        .function-desc {
+            font-size: 11px;
+            color: #999;
+        }
+
+        /* 状态栏图标动画 */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .signal-icon {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="mobile-container">
+    <!-- 状态栏 -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="flex justify-between items-center py-2">
+            <div class="pl-4 flex items-center text-sm text-gray-600">
+                <i class="fas fa-signal mr-1 signal-icon"></i>
+                <span>中国移动</span>
+            </div>
+            <div class="pr-4 flex items-center text-sm text-gray-600">
+                <i class="fas fa-wifi mr-2"></i>
+                <i class="fas fa-battery-three-quarters mr-1"></i>
+                <span>85%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头部用户信息区 -->
+    <div class="postal-gradient-bg pb-8 pt-4 relative">
+        <div class="px-4 py-6">
+            <!-- 扫码按钮 -->
+            <div class="text-right mb-4">
+                <button class="text-white text-sm" style="background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3);">
+                    扫码网点 <i class="fas fa-qrcode ml-1"></i>
+                </button>
+            </div>
+
+            <!-- 用户信息卡片 -->
+            <div class="user-card p-4 relative z-10">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-white rounded-full overflow-hidden mr-4 border-2 border-white shadow-lg">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect fill='%2300A651' width='64' height='64'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='white' text-anchor='middle' dominant-baseline='central' font-family='sans-serif'%3E灵%3C/text%3E%3C/svg%3E" alt="用户头像">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-white text-lg font-semibold">Hi, 灵心</h2>
+                        <p class="text-white text-sm opacity-90">18435141411</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能模块区 -->
+    <div class="function-grid" style="margin-top: -20px;">
+        <!-- 进件开户 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-file-import"></i>
+            </div>
+            <div class="function-name">进件开户</div>
+            <!-- <div class="function-desc">商户进件管理</div> -->
+        </div>
+
+        <!-- 商户管理 -->
+        <div class="function-card" onclick="goToMerchantManagement()">
+            <div class="function-icon">
+                <i class="fas fa-list-check"></i>
+            </div>
+            <div class="function-name">商户管理</div>
+            <!-- <div class="function-desc">商户信息维护</div> -->
+        </div>
+
+        <!-- 交易统计 -->
+        <div class="function-card" onclick="goToTransactionStats()">
+            <div class="function-icon">
+                <i class="fas fa-file-lines"></i>
+            </div>
+            <div class="function-name">交易统计</div>
+            <!-- <div class="function-desc">交易数据分析</div> -->
+        </div>
+
+        <!-- 门店管理 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="function-name">门店管理</div>
+            <!-- <div class="function-desc">门店信息管理</div> -->
+        </div>
+
+        <!-- 码牌设备 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <div class="function-name">码牌设备</div>
+            <!-- <div class="function-desc">设备管理</div> -->
+        </div>
+
+        <!-- 费率政策 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-bookmark"></i>
+            </div>
+            <div class="function-name">费率政策</div>
+            <!-- <div class="function-desc">费率查询设置</div> -->
+        </div>
+
+        <!-- 碰一下数据看板 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-wifi"></i>
+            </div>
+            <div class="function-name">碰一下数据看板</div>
+            <!-- <div class="function-desc">NFC数据统计</div> -->
+        </div>
+
+        <!-- 补贴计算器 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-table-list"></i>
+            </div>
+            <div class="function-name">补贴计算器</div>
+            <!-- <div class="function-desc">补贴计算工具</div> -->
+        </div>
+
+        <!-- 任务管理 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <div class="function-name">任务管理</div>
+            <!-- <div class="function-desc">任务处理跟踪</div> -->
+        </div>
+
+        <!-- 审核中心 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div class="function-name">审核中心</div>
+            <!-- <div class="function-desc">审核流程管理</div> -->
+        </div>
+        
+        <!-- 商户补贴预警 - 新增模块 -->
+        <div class="function-card" onclick="goToSubsidyWarning()">
+            <div class="function-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="function-name">商户补贴预警</div>
+            <!-- <div class="function-desc">补贴风险监控</div> -->
+            <span style="position: absolute; top: 8px; right: 8px; background: #ff4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px;">NEW</span>
+        </div>
+
+        <!-- 个人中心 -->
+        <div class="function-card">
+            <div class="function-icon">
+                <i class="fas fa-dice-d6"></i>
+            </div>
+            <div class="function-name">个人中心</div>
+            <!-- <div class="function-desc">个人信息设置</div> -->
+        </div>
+
+        
+    </div>
+
+    <!-- 底部版本信息 -->
+    <div class="text-center py-8 text-gray-400 text-xs">
+        版本号：V1.1.127
+    </div>
+
+    <script>
+        /**
+         * 跳转到商户补贴预警列表页
+         */
+        function goToSubsidyWarning() {
+            window.location.href = 'merchant-subsidy-warning-list.html';
+        }
+
+        /**
+         * 跳转到商户管理页面
+         */
+        function goToMerchantManagement() {
+            window.location.href = '商户详情.html';
+        }
+
+        /**
+         * 跳转到交易统计页面
+         */
+        function goToTransactionStats() {
+            window.location.href = '交易排序.html';
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('邮付管家首页加载完成');
+        });
+    </script>
+</body>
+</html>

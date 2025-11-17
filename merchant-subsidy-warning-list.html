@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>商户补贴预警列表 - 邮付管家</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'postal-green': '#00A651',
+                        'postal-green-dark': '#008A44',
+                        'postal-green-light': '#E8F5E8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 移动端适配样式 */
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        .mobile-container {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .mobile-content {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        /* 搜索框样式 */
+        .search-container {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 16px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #00A651;
+            box-shadow: 0 0 0 3px rgba(0, 166, 81, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        /* 筛选标签样式 */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding: 0 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .filter-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-tab {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        .filter-tab.active {
+            background: #00A651;
+            color: white;
+            border-color: #00A651;
+        }
+
+        .filter-tab:hover:not(.active) {
+            background: #f9fafb;
+            border-color: #00A651;
+        }
+
+        /* 商户卡片样式 */
+        .merchant-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+        }
+
+        .merchant-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 166, 81, 0.15);
+            border-color: #00A651;
+        }
+
+        .merchant-card:active {
+            transform: translateY(0);
+        }
+
+        .merchant-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .warning-badge-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .drill-icon {
+            color: #00A651;
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .merchant-card:hover .drill-icon {
+            transform: translateX(3px);
+        }
+
+        .merchant-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .merchant-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: #6b7280;
+            min-width: 70px;
+        }
+
+        .info-value {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        /* 预警标签样式 */
+        .warning-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .warning-high {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+
+        .warning-medium {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #d97706;
+            border: 1px solid #fcd34d;
+        }
+
+        .warning-low {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #16a34a;
+            border: 1px solid #86efac;
+        }
+
+        /* 加载更多按钮 */
+        .load-more-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 1px dashed #d1d5db;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 16px 0;
+        }
+
+        .load-more-btn:hover {
+            border-color: #00A651;
+            color: #00A651;
+            background: #f0fdf4;
+        }
+
+        /* 空状态样式 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* 统计信息样式 */
+        .stats-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px 8px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-value.high {
+            color: #dc2626;
+        }
+
+        .stat-value.medium {
+            color: #d97706;
+        }
+
+        .stat-value.low {
+            color: #16a34a;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        /* 预警等级Tab样式 */
+        .warning-level-tabs {
+            background: white;
+            padding: 0;
+            margin-bottom: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .warning-level-tab-nav {
+            display: flex;
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .warning-level-tab {
+            flex: 1;
+            padding: 14px 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .warning-level-tab:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .warning-level-tab.active {
+            color: #00A651;
+            background: white;
+            border-bottom-color: #00A651;
+            font-weight: 600;
+        }
+
+        .warning-level-tab .tab-label {
+            font-size: 14px;
+        }
+
+        .warning-level-tab .tab-count {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .warning-level-tab.active .tab-count {
+            color: #00A651;
+        }
+
+        /* 指标筛选器样式 */
+        .indicator-selector {
+            padding: 4px 16px;
+            background: white;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .indicator-selector-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .indicator-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .indicator-tag {
+            flex: 1;
+            min-width: 0;
+            padding: 6px 8px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 20px;
+            background: white;
+            color: #3d4047;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .indicator-tag:hover {
+            border-color: #00A651;
+            background: #f0fdf4;
+            color: #00A651;
+        }
+
+        .indicator-tag.active {
+            background: #00A651;
+            color: white;
+            border-color: #00A651;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 166, 81, 0.2);
+        }
+
+        /* 指标详情显示 */
+        .indicator-detail-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 8px;
+            border-left: 3px solid #00A651;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .indicator-detail-badge .indicator-name {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .indicator-detail-badge .indicator-value {
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .indicator-detail-badge .indicator-status {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .indicator-detail-badge .indicator-status.over {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .indicator-detail-badge .indicator-status.normal {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 mobile-container">
+    <!-- 状态栏 -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="flex justify-between items-center py-2">
+            <div class="pl-4 flex items-center text-sm text-gray-600">
+                <i class="fas fa-signal mr-1"></i>
+                <span>中国移动</span>
+            </div>
+            <div class="pr-4 flex items-center text-sm text-gray-600">
+                <i class="fas fa-wifi mr-2"></i>
+                <i class="fas fa-battery-three-quarters mr-1"></i>
+                <span>85%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头部导航 -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="mobile-content flex items-center justify-between py-4">
+            <button onclick="goBack()" class="flex items-center text-gray-600">
+                <i class="fas fa-arrow-left text-lg mr-2"></i>
+                <span class="text-base">返回</span>
+            </button>
+            <h1 class="text-lg font-semibold text-gray-800">商户补贴预警列表</h1>
+            <div class="w-12"></div>
+        </div>
+    </div>
+
+
+
+    <!-- 搜索框 -->
+    <div class="mobile-content">
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       id="searchInput" 
+                       class="search-input" 
+                       placeholder="搜索商户名称或商户号"
+                       oninput="handleSearch()">
+            </div>
+        </div>
+    </div>
+
+    <!-- 预警等级Tab页签 -->
+    <div class="mobile-content">
+        <div class="warning-level-tabs">
+            <!-- Tab导航 -->
+            <div class="warning-level-tab-nav">
+                <div class="warning-level-tab active" data-level="high" onclick="switchWarningLevelTab('high')">
+                    <span class="tab-label">高度关注</span>
+                    <span class="tab-count" id="tabCountHigh">4</span>
+                </div>
+                <div class="warning-level-tab" data-level="medium" onclick="switchWarningLevelTab('medium')">
+                    <span class="tab-label">中度关注</span>
+                    <span class="tab-count" id="tabCountMedium">4</span>
+                </div>
+                <div class="warning-level-tab" data-level="low" onclick="switchWarningLevelTab('low')">
+                    <span class="tab-label">轻度关注</span>
+                    <span class="tab-count" id="tabCountLow">2</span>
+                </div>
+            </div>
+
+            <!-- 指标筛选器 -->
+            <div class="indicator-selector">
+                <div class="indicator-selector-label">
+                    <!-- <i class="fas fa-filter"></i> 按指标筛选： -->
+                </div>
+                <div class="indicator-tags">
+                    <div class="indicator-tag active" data-indicator="monthly" onclick="switchIndicator('monthly')">
+                        当月预估耗能
+                    </div>
+                    <div class="indicator-tag" data-indicator="previous" onclick="switchIndicator('previous')">
+                        上月实际耗能
+                    </div>
+                    <div class="indicator-tag" data-indicator="growth" onclick="switchIndicator('growth')">
+                        成本同比增长
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商户列表 -->
+    <div class="mobile-content" id="merchantList">
+        <!-- 商户卡片将通过JavaScript动态生成 -->
+    </div>
+
+    <!-- 加载更多按钮 -->
+    <div class="mobile-content">
+        <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">
+            <i class="fas fa-arrow-down mr-2"></i>加载更多
+        </button>
+    </div>
+
+    <script>
+        // 扩展商户数据，增加三个指标的详细信息
+        const merchantData = [
+            {
+                id: 1,
+                name: '星巴克咖啡店',
+                customerNo: 'KH202401001',
+                merchantNo: '6012345678',
+                manager: '张建国',
+                managerPhone: '13812345678',
+                updateTime: '2025.10.27 11:12:34',
+                // 三个指标的详细数据
+                indicators: {
+                    monthly: { level: 'medium', value: 8500, limit: 7000, unit: '元' },
+                    previous: { level: 'low', value: 6200, limit: 7000, unit: '元' },
+                    growth: { level: 'high', value: 37, limit: 20, unit: '%' }
+                },
+                // 综合等级（取三者最高）
+                warningLevel: 'high',
+                warningLevelText: '高度关注'
+            },
+            {
+                id: 2,
+                name: '麦当劳快餐店',
+                customerNo: 'KH202401002',
+                merchantNo: '6023456789',
+                manager: '王丽华',
+                managerPhone: '13923456789',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'medium', value: 7200, limit: 7000, unit: '元' },
+                    previous: { level: 'medium', value: 7500, limit: 7000, unit: '元' },
+                    growth: { level: 'low', value: 15, limit: 20, unit: '%' }
+                },
+                warningLevel: 'medium',
+                warningLevelText: '中度关注'
+            },
+            {
+                id: 3,
+                name: '肯德基餐厅',
+                customerNo: 'KH202401003',
+                merchantNo: '6034567890',
+                manager: '李明远',
+                managerPhone: '13634567890',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'low', value: 5800, limit: 7000, unit: '元' },
+                    previous: { level: 'low', value: 5500, limit: 7000, unit: '元' },
+                    growth: { level: 'low', value: 12, limit: 20, unit: '%' }
+                },
+                warningLevel: 'low',
+                warningLevelText: '轻度关注'
+            },
+            {
+                id: 4,
+                name: '海底捞火锅',
+                customerNo: 'KH202401004',
+                merchantNo: '6045678901',
+                manager: '赵晓东',
+                managerPhone: '13745678901',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'high', value: 9200, limit: 7000, unit: '元' },
+                    previous: { level: 'medium', value: 7300, limit: 7000, unit: '元' },
+                    growth: { level: 'high', value: 42, limit: 20, unit: '%' }
+                },
+                warningLevel: 'high',
+                warningLevelText: '高度关注'
+            },
+            {
+                id: 5,
+                name: '喜茶饮品店',
+                customerNo: 'KH202401005',
+                merchantNo: '6056789012',
+                manager: '孙芳芳',
+                managerPhone: '13556789012',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'low', value: 6500, limit: 7000, unit: '元' },
+                    previous: { level: 'medium', value: 7100, limit: 7000, unit: '元' },
+                    growth: { level: 'medium', value: 25, limit: 20, unit: '%' }
+                },
+                warningLevel: 'medium',
+                warningLevelText: '中度关注'
+            },
+            {
+                id: 6,
+                name: '奈雪的茶',
+                customerNo: 'KH202401006',
+                merchantNo: '6067890123',
+                manager: '周志强',
+                managerPhone: '13367890123',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'high', value: 8800, limit: 7000, unit: '元' },
+                    previous: { level: 'high', value: 8200, limit: 7000, unit: '元' },
+                    growth: { level: 'medium', value: 28, limit: 20, unit: '%' }
+                },
+                warningLevel: 'high',
+                warningLevelText: '高度关注'
+            },
+            {
+                id: 7,
+                name: '华莱士快餐',
+                customerNo: 'KH202401007',
+                merchantNo: '6078901234',
+                manager: '吴秀英',
+                managerPhone: '13878901234',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'medium', value: 7400, limit: 7000, unit: '元' },
+                    previous: { level: 'low', value: 6800, limit: 7000, unit: '元' },
+                    growth: { level: 'low', value: 18, limit: 20, unit: '%' }
+                },
+                warningLevel: 'medium',
+                warningLevelText: '中度关注'
+            },
+            {
+                id: 8,
+                name: '必胜客餐厅',
+                customerNo: 'KH202401008',
+                merchantNo: '6089012345',
+                manager: '郑海涛',
+                managerPhone: '13989012345',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'low', value: 6200, limit: 7000, unit: '元' },
+                    previous: { level: 'low', value: 5900, limit: 7000, unit: '元' },
+                    growth: { level: 'low', value: 10, limit: 20, unit: '%' }
+                },
+                warningLevel: 'low',
+                warningLevelText: '轻度关注'
+            },
+            {
+                id: 9,
+                name: '呷哺呷哺火锅',
+                customerNo: 'KH202401009',
+                merchantNo: '6090123456',
+                manager: '陈佳慧',
+                managerPhone: '13690123456',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'high', value: 9500, limit: 7000, unit: '元' },
+                    previous: { level: 'high', value: 8900, limit: 7000, unit: '元' },
+                    growth: { level: 'high', value: 45, limit: 20, unit: '%' }
+                },
+                warningLevel: 'high',
+                warningLevelText: '高度关注'
+            },
+            {
+                id: 10,
+                name: '永和大王',
+                customerNo: 'KH202401010',
+                merchantNo: '6001234567',
+                manager: '刘伟明',
+                managerPhone: '13701234567',
+                updateTime: '2025.10.27 11:12:34',
+                indicators: {
+                    monthly: { level: 'medium', value: 7600, limit: 7000, unit: '元' },
+                    previous: { level: 'medium', value: 7200, limit: 7000, unit: '元' },
+                    growth: { level: 'medium', value: 22, limit: 20, unit: '%' }
+                },
+                warningLevel: 'medium',
+                warningLevelText: '中度关注'
+            }
+        ];
+
+        // 当前筛选状态
+        let currentWarningLevel = 'high'; // 当前选中的预警等级Tab（默认高度关注）
+        let currentIndicator = 'monthly'; // 当前选中的指标
+        let currentSearch = '';
+        let currentPage = 1;
+        const pageSize = 10;
+
+        // 指标配置
+        const indicatorConfig = {
+            monthly: {
+                name: '当月预估耗能',
+                icon: 'fa-chart-bar',
+                getStatus: (value, limit) => value > limit ? `超标 ${((value - limit) / limit * 100).toFixed(0)}%` : '正常'
+            },
+            previous: {
+                name: '上月实际耗能',
+                icon: 'fa-history',
+                getStatus: (value, limit) => value > limit ? `超标 ${((value - limit) / limit * 100).toFixed(0)}%` : '正常'
+            },
+            growth: {
+                name: '成本同比增长',
+                icon: 'fa-trending-up',
+                getStatus: (value, limit) => value > limit ? `增长 ${value}%` : `增长 ${value}%`
+            }
+        };
+
+        /**
+         * 页面初始化
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTabStatistics(); // 初始化Tab统计（基于综合等级）
+            renderMerchantList();
+        });
+
+        /**
+         * 切换预警等级Tab
+         */
+        function switchWarningLevelTab(level) {
+            currentWarningLevel = level;
+            currentPage = 1;
+
+            // 更新Tab样式
+            document.querySelectorAll('.warning-level-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.warning-level-tab[data-level="${level}"]`).classList.add('active');
+
+            renderMerchantList();
+        }
+
+        /**
+         * 切换指标
+         */
+        function switchIndicator(indicator) {
+            currentIndicator = indicator;
+            currentPage = 1;
+
+            // 更新按钮样式
+            document.querySelectorAll('.indicator-tag').forEach(tag => {
+                tag.classList.remove('active');
+            });
+            document.querySelector(`.indicator-tag[data-indicator="${indicator}"]`).classList.add('active');
+
+            // 注意：指标切换不应该更新Tab统计，Tab统计始终基于综合等级
+            renderMerchantList();
+        }
+
+        /**
+         * 渲染商户列表
+         */
+        function renderMerchantList() {
+            const filteredData = getFilteredData();
+            const listContainer = document.getElementById('merchantList');
+            
+            if (filteredData.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox empty-state-icon"></i>
+                        <div class="empty-state-text">暂无符合条件的商户</div>
+                    </div>
+                `;
+                document.getElementById('loadMoreBtn').style.display = 'none';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            const displayData = filteredData.slice(0, currentPage * pageSize);
+
+            displayData.forEach(merchant => {
+                const card = createMerchantCard(merchant);
+                listContainer.appendChild(card);
+            });
+
+            // 控制加载更多按钮显示
+            if (displayData.length >= filteredData.length) {
+                document.getElementById('loadMoreBtn').style.display = 'none';
+            } else {
+                document.getElementById('loadMoreBtn').style.display = 'block';
+            }
+        }
+
+        /**
+         * 创建商户卡片
+         */
+        function createMerchantCard(merchant) {
+            const card = document.createElement('div');
+            card.className = 'merchant-card';
+            card.onclick = () => goToDetail(merchant.id);
+
+            // 获取当前指标的数据
+            const indicator = merchant.indicators[currentIndicator];
+
+            card.innerHTML = `
+                <div class="merchant-card-header">
+                    <div>
+                        <div class="merchant-name">${merchant.name}</div>
+                    </div>
+                    <div class="warning-badge-wrapper">
+                        <span class="warning-badge warning-${indicator.level}">
+                            ${getLevelText(indicator.level)}
+                        </span>
+                        <i class="fas fa-chevron-right drill-icon"></i>
+                    </div>
+                </div>
+                <div class="merchant-info-row">
+                    <span class="info-label">商户号</span>
+                    <span class="info-value">${merchant.merchantNo}</span>
+                </div>
+                <div class="merchant-info-row">
+                    <span class="info-label">客户号</span>
+                    <span class="info-value">${merchant.customerNo}</span>
+                </div>
+                
+                <div class="merchant-info-row">
+                    <span class="info-label">客户名称</span>
+                    <span class="info-value">${merchant.manager}</span>
+                </div>
+               
+            `;
+
+            return card;
+        }
+
+        /**
+         * 获取筛选后的数据
+         */
+        function getFilteredData() {
+            let data = [...merchantData];
+
+            // 第一层筛选：按综合预警等级筛选（Tab页签）
+            data = data.filter(m => m.warningLevel === currentWarningLevel);
+
+            // 第二层筛选：在当前Tab下，按指标筛选
+            // 只显示该指标也达到当前Tab对应等级的商户
+            data = data.filter(m => m.indicators[currentIndicator].level === currentWarningLevel);
+
+            // 按搜索关键词筛选
+            if (currentSearch) {
+                const keyword = currentSearch.toLowerCase();
+                data = data.filter(m => 
+                    m.name.toLowerCase().includes(keyword) || 
+                    m.merchantNo.toLowerCase().includes(keyword)
+                );
+            }
+
+            // 排序：按更新时间倒序（因为已经筛选了相同等级）
+            data.sort((a, b) => {
+                return b.updateTime.localeCompare(a.updateTime);
+            });
+
+            return data;
+        }
+
+        /**
+         * 获取等级文本
+         */
+        function getLevelText(level) {
+            const levelMap = {
+                'high': '高度关注',
+                'medium': '中度关注',
+                'low': '轻度关注'
+            };
+            return levelMap[level] || level;
+        }
+
+        /**
+         * 按预警等级筛选
+         */
+        function filterByLevel(level) {
+            currentFilter = level;
+            currentPage = 1;
+
+            // 更新标签样式
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-level="${level}"]`).classList.add('active');
+
+            renderMerchantList();
+        }
+
+        /**
+         * 搜索处理
+         */
+        function handleSearch() {
+            currentSearch = document.getElementById('searchInput').value;
+            currentPage = 1;
+            renderMerchantList();
+            // 搜索不影响Tab统计
+        }
+
+        /**
+         * 加载更多
+         */
+        function loadMore() {
+            currentPage++;
+            renderMerchantList();
+        }
+
+        /**
+         * 更新Tab统计数据（基于综合预警等级，不受指标筛选影响）
+         */
+        function updateTabStatistics() {
+            // Tab统计始终基于商户的综合预警等级（warningLevel）
+            const highCount = merchantData.filter(m => m.warningLevel === 'high').length;
+            const mediumCount = merchantData.filter(m => m.warningLevel === 'medium').length;
+            const lowCount = merchantData.filter(m => m.warningLevel === 'low').length;
+
+            document.getElementById('tabCountHigh').textContent = highCount;
+            document.getElementById('tabCountMedium').textContent = mediumCount;
+            document.getElementById('tabCountLow').textContent = lowCount;
+        }
+
+        /**
+         * 更新统计数据（弃用，保留兼容）
+         */
+        function updateStatistics() {
+            updateTabStatistics();
+        }
+
+        /**
+         * 跳转到详情页
+         */
+        function goToDetail(merchantId) {
+            window.location.href = `merchant-subsidy-warning-detail.html?id=${merchantId}`;
+        }
+
+        /**
+         * 返回首页
+         */
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
