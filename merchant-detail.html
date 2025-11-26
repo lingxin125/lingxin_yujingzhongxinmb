@@ -1,2367 +1,2759 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>商户详情 - 邮付管家</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'postal-green': '#00A651',
-                        'postal-green-dark': '#008A44',
-                        'postal-green-light': '#E8F5E8',
-                        'warning-red': '#FF4444',
-                        'warning-orange': '#FF8800',
-                        'warning-yellow': '#FFD700'
-                    }
-                }
-            }
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商户详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 移动端适配样式 */
-        html, body {
-            width: 100%;
-            overflow-x: hidden;
-            box-sizing: border-box;
-        }
-        
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-        
-        .mobile-container {
-            width: 100%;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        .mobile-content {
-            padding-left: 1rem;
-            padding-right: 1rem;
+        :root {
+            --primary-blue: #1677ff;
+            --primary-blue-hover: #4096ff;
+            --primary-blue-active: #0958d9;
+            --primary-blue-light: #e6f4ff;
+            --success-green: #52c41a;
+            --warning-orange: #fa8c16;
+            --error-red: #ff4d4f;
+            --bg-layout: #f5f5f5;
+            --bg-container: #ffffff;
+            --border-color: #d9d9d9;
+            --border-color-light: #f0f0f0;
+            --text-primary: #000000d9;
+            --text-secondary: #00000073;
+            --text-disabled: #00000040;
+            --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
         }
 
-        /* 邮政主题样式 */
-        .postal-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        * {
+            font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
         }
-        
-        .tab-active {
-            background: #00A651;
-            color: white;
-        }
-        
-        .tab-inactive {
-            background: #f8fafc;
-            color: #64748b;
-        }
-        
-        /* 指标卡片样式 - 参考截图简洁设计 */
-        .indicator-card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: cardFloat 6s ease-in-out infinite;
-            transform-origin: center;
-        }
-        
-        .indicator-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
-            animation-play-state: paused;
-        }
-        
-        /* 浮动动画 */
-        @keyframes cardFloat {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-3px);
-            }
-        }
-        
-        .alert-high {
-            border-radius: 12px;
-            overflow: hidden;
-            background: white;
-            border: 1px solid #e5e7eb;
-            animation-delay: 0s;
-        }
-        
-        .alert-medium {
-            border-radius: 12px;
-            overflow: hidden;
-            background: white;
-            border: 1px solid #e5e7eb;
-            animation-delay: 2s;
-        }
-        
-        .alert-low {
-            border-radius: 12px;
-            overflow: hidden;
-            background: white;
-            border: 1px solid #e5e7eb;
-            animation-delay: 4s;
-        }
-        
 
-        
-        /* 卡片内容区域 - 更紧凑的布局 */
-        .card-content {
-            padding: 12px 16px;
-            background: white;
-            border-radius: 0 0 12px 12px;
-            position: relative;
-            transition: all 0.3s ease;
+        body {
+            background: var(--bg-layout);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5715;
+            margin: 0;
+            padding: 0;
         }
-        
-        .indicator-card:hover .card-content {
-            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+
+        .page-container {
+            padding: 24px;
         }
-        
-        .card-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .indicator-card:hover .card-content::before {
-            opacity: 1;
-        }
-        
-        /* 指标标题样式 */
-        .indicator-title {
+
+        .page-header {
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0;
-            padding: 12px 16px;
-            border-radius: 12px 12px 0 0;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
         }
-        
-        .indicator-title::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.6s ease;
-        }
-        
-        .indicator-card:hover .indicator-title::before {
-            left: 100%;
-        }
-        
-        /* 高风险标题背景 */
-        .alert-high .indicator-title {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 50%, #fef2f2 100%);
-            border-bottom: 2px solid #f87171;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-        
-        .alert-high:hover .indicator-title {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 50%, #fee2e2 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(248, 113, 113, 0.2);
-        }
-        
-        /* 中风险标题背景 */
-        .alert-medium .indicator-title {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fffbeb 100%);
-            border-bottom: 2px solid #f59e0b;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-        
-        .alert-medium:hover .indicator-title {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fef3c7 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(245, 158, 11, 0.2);
-        }
-        
-        /* 低风险标题背景 */
-        .alert-low .indicator-title {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #f0fdf4 100%);
-            border-bottom: 2px solid #10b981;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-        
-        .alert-low:hover .indicator-title {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 50%, #dcfce7 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(16, 185, 129, 0.2);
-        }
-        
-        .indicator-name {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            font-weight: 500;
-            color: #374151;
-        }
-        
-        .indicator-icon {
-            margin-right: 6px;
-            font-size: 14px;
-        }
-        
-        /* 状态标签样式 */
-        .status-badge {
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-        
-        .status-badge::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transition: left 0.6s ease;
-        }
-        
-        .indicator-card:hover .status-badge::before {
-            left: 100%;
-        }
-        
-        .status-high {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            color: #dc2626;
-            border: 1px solid #fca5a5;
-        }
-        
-        .indicator-card:hover .status-high {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            transform: scale(1.05);
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
-        }
-        
-        .status-medium {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            color: #d97706;
-            border: 1px solid #fcd34d;
-        }
-        
-        .indicator-card:hover .status-medium {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            transform: scale(1.05);
-            box-shadow: 0 2px 4px rgba(217, 119, 6, 0.2);
-        }
-        
-        .status-low {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            color: #16a34a;
-            border: 1px solid #86efac;
-        }
-        
-        .indicator-card:hover .status-low {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            transform: scale(1.05);
-            box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
-        }
-        
-        /* 判定原因样式 */
-        .indicator-reason {
-            font-size: 13px;
-            color: #6b7280;
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
             margin: 0;
         }
-        
-        /* 提示工具样式 */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            margin-left: 6px;
-        }
-        
-        .tooltip-icon {
-            color: #9CA3AF;
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-blue);
+            text-decoration: none;
             font-size: 14px;
+            padding: 8px 16px;
+            border: 1px solid var(--primary-blue);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-blue-light);
+        }
+
+        .card {
+            background: var(--bg-container);
+            border-radius: 8px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-color-light);
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .card-title1 {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* 纵向Tab布局 */
+        .tabs-container {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .tabs-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
+
+        .tab {
+            padding: 16px 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 4px;
-            border-radius: 50%;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: var(--bg-container);
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             position: relative;
-            z-index: 1000;
-            pointer-events: auto;
         }
-        
-        .tooltip-icon:hover {
-            color: #4f46e5;
-            background-color: rgba(79, 70, 229, 0.1);
-            transform: scale(1.1);
+
+        .tab.active {
+            color: var(--primary-blue);
+            background: var(--primary-blue-light);
+            border-color: var(--primary-blue);
         }
-        
-        .tooltip-content {
+
+        .tab:hover {
+            color: var(--primary-blue);
+            background: var(--primary-blue-light);
+        }
+
+        .tab-content-area {
+            flex: 1;
+            min-height: 500px;
+            height: auto;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--bg-container);
+            border-radius: 8px;
+            border: 1px solid var(--border-color-light);
+            box-shadow: var(--shadow-card);
+        }
+
+        .tab-content.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            padding: 0;
+            margin: 0;
+            min-height: 400px;
+            width: 100%;
+            height: auto !important;
+        }
+
+        .tab-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tab-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* 模态弹框样式 */
+        .modal-overlay {
             display: none;
             position: fixed;
-            background: #1F2937;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            line-height: 1.4;
-            max-width: 280px;
-            white-space: normal;
-            z-index: 99999 !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: auto;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
         }
-        
-        .tooltip-content::before {
-            content: '';
+
+        .modal-content {
             position: absolute;
-            top: 100%;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            border: 8px solid transparent;
-            border-top-color: #1F2937;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        }
-        
-        .assessment-date {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border: 1px solid #cbd5e1;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            max-width: 95%;
+            background: white;
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
-        .assessment-date-icon {
-            color: #00A651;
-            margin-right: 8px;
-            font-size: 16px;
+
+        .modal-close:hover {
+            color: var(--text-primary);
         }
-        
-        .assessment-date-text {
-            color: #475569;
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            width: 100%;
+            max-width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
             font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1);
+        }
+
+        .form-control[readonly] {
+            background-color: #f5f5f5;
+            color: var(--text-secondary);
+        }
+
+        .form-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        select.form-control[multiple] {
+            height: 120px;
+        }
+
+        .checkbox-group {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .checkbox-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox-item span {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .checkbox-item:hover {
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 4px;
+            margin: 2px 0;
+        }
+
+        /* 表格样式 */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+            background: white;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .table th {
+            background: #fafafa;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color-light);
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color-light);
+            font-size: 14px;
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* 多选下拉组件样式 */
+        .multi-select-container {
+            position: relative;
+        }
+
+        .multi-select-input {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px 12px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 20px;
+        }
+
+        .multi-select-input:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .selected-items {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .selected-item {
+            background: var(--primary-blue-light);
+            color: var(--primary-blue);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .selected-item .remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .placeholder {
+            color: var(--text-disabled);
+            font-size: 14px;
+        }
+
+        .dropdown-arrow {
+            color: var(--text-secondary);
+            transition: transform 0.3s;
+        }
+
+        .dropdown-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .multi-select-dropdown.open {
+            display: block;
+        }
+
+        .dropdown-option {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .dropdown-option:hover {
+            background-color: #f5f5f5;
+        }
+
+        .dropdown-option input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .dropdown-option label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .tab-body {
+            padding: 24px;
+            min-height: 600px;
+            height: auto;
+        }
+
+        /* 360度风险画像样式 */
+        .risk-radar {
+            position: relative;
+            width: 100%;
+            min-height: 600px;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .risk-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .merchant-avatar {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            box-shadow: 0 4px 12px rgba(22, 119, 255, 0.3);
+        }
+
+        .merchant-avatar i {
+            font-size: 32px;
+            color: white;
+        }
+
+        .merchant-info {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-color-light);
+        }
+
+        .merchant-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .merchant-id {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .risk-level {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
             font-weight: 500;
         }
-        
-        .assessment-date-value {
-            color: #1e293b;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        .stats-card {
+
+        /* 风险指标卡片 */
+        .risk-card {
+            position: absolute;
+            width: 280px;
             background: white;
-            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color-light);
+            transition: all 0.3s ease;
+        }
+
+        .risk-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .risk-card-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .risk-card-header i {
+            font-size: 16px;
+            color: var(--primary-blue);
+        }
+
+        .risk-card-header span:nth-child(2) {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .risk-card-content {
+            padding: 16px;
+        }
+
+        .risk-item {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .risk-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .risk-label {
+            color: var(--text-secondary);
+            min-width: 70px;
+            margin-right: 8px;
+        }
+
+        .risk-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* 风险卡片位置 */
+        .risk-card-1 {
+            top: 10%;
+            left: 10%;
+        }
+
+        .risk-card-2 {
+            top: 10%;
+            right: 10%;
+        }
+
+        .risk-card-3 {
+            bottom: 10%;
+            left: 10%;
+        }
+
+        .risk-card-4 {
+            bottom: 10%;
+            right: 10%;
+        }
+
+        /* 轻度关注指标底部排列 */
+        .low-risk-section {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f9f9f9;
             border-radius: 8px;
         }
-        
-        /* 数值样式 */
-        .value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1f2937;
-            margin: 8px 0;
-            position: relative;
-            transition: all 0.3s ease;
-            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+
+        .low-risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
         }
 
-        .indicator-card:hover .value {
-            transform: scale(1.05);
-            background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #374151 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .low-risk-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color-light);
+            box-shadow: var(--shadow-card);
         }
 
-        .unit {
-            font-size: 14px;
-            color: #6b7280;
-            margin-left: 4px;
-            transition: color 0.3s ease;
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 2px;
         }
 
-        .indicator-card:hover .unit {
-            color: #4b5563;
-        }
-        
-        /* 预警级别过滤样式 */
-        .level-filter {
+        .info-item {
             display: flex;
+            flex-direction: column;
             gap: 8px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
         }
-        
-        .filter-btn {
+
+        .info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .photo-item {
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .photo-label {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+            background: var(--bg-container);
+        }
+
+        .btn {
+            height: 32px;
+            padding: 4px 15px;
+            border-radius: 6px;
+            font-weight: 400;
+            font-size: 14px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-success {
+            background: var(--success-green);
+            border-color: var(--success-green);
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-blue-hover);
+            border-color: var(--primary-blue-hover);
+        }
+
+        .btn-warning {
+            background: var(--warning-orange);
+            border-color: var(--warning-orange);
+            color: #ffffff;
+        }
+
+        .btn-warning:hover {
+            background: #d46b08;
+            border-color: #d46b08;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding: 24px;
+            border-top: 1px solid var(--border-color-light);
+            background: #fafafa;
+        }
+
+        .risk-indicators {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .risk-category {
+            background: var(--bg-container);
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .risk-category-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .risk-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        .risk-item:last-child {
+            border-bottom: none;
+        }
+
+        .risk-name {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .risk-level {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .risk-high {
+            background: #fff2f0;
+            color: var(--error-red);
+        }
+
+        .risk-medium {
+            background: #fff7e6;
+            color: var(--warning-orange);
+        }
+
+        .risk-low {
+            background: #f6ffed;
+            color: var(--success-green);
+        }
+
+        .operation-history {
+            margin-top: 32px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .history-table th {
+            background: #fafafa;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color-light);
+            font-size: 14px;
+        }
+
+        .history-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color-light);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .status-tag {
+            padding: 4px 12px;
+
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-tag1 {
+            padding: 4px 12px;
+            margin-right: 4px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #f5f5f5;
+            color: #8c8c8c;
+        }
+
+        .status-completed {
+            background: #f6ffed;
+            color: var(--success-green);
+        }
+
+        .status-processing {
+            background: var(--primary-blue-light);
+            color: var(--primary-blue);
+        }
+
+        /* 优化后的风险评估布局 */
+        .risk-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .risk-overview-card {
+            background: var(--bg-container);
+            border: 1px solid var(--border-color-light);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-card);
+        }
+
+        .risk-overview-number {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .risk-overview-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .risk-overview-high .risk-overview-number {
+            color: var(--error-red);
+        }
+
+        .risk-overview-medium .risk-overview-number {
+            color: var(--warning-orange);
+        }
+
+        .risk-overview-low .risk-overview-number {
+            color: var(--success-green);
+        }
+
+        /* 风险分区布局 */
+        .risk-section {
+            margin-bottom: 32px;
+        }
+
+        .risk-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .risk-section-title.high-risk {
+            background: #fff2f0;
+            color: var(--error-red);
+            border-left: 4px solid var(--error-red);
+        }
+
+        .risk-section-title.medium-risk {
+            background: #fff7e6;
+            color: var(--warning-orange);
+            border-left: 4px solid var(--warning-orange);
+        }
+
+        .risk-section-title.low-risk {
+            background: #f6ffed;
+            color: var(--success-green);
+            border-left: 4px solid var(--success-green);
+        }
+
+        .risk-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            max-width: 100%;
+            gap: 20px;
+        }
+
+        /* 确保每行最多3个卡片 */
+        @media (min-width: 1200px) {
+            .risk-cards-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .risk-cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 767px) {
+            .risk-cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 统一的风险卡片样式 */
+        .unified-risk-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color-light);
+            transition: all 0.3s ease;
+            overflow: visible;
+        }
+
+        .unified-risk-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .unified-risk-card-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .unified-risk-card-header i {
+            font-size: 16px;
+        }
+
+        .unified-risk-card-header .risk-title {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .unified-risk-card-content {
+            padding: 16px;
+        }
+
+        .unified-risk-item {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .unified-risk-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .unified-risk-label {
+            color: var(--text-secondary);
+            min-width: 70px;
+            margin-right: 8px;
+        }
+
+        /* 高度关注卡片样式 */
+        .unified-risk-card.high-risk .unified-risk-card-header {
+            background: #fff2f0;
+        }
+
+        .unified-risk-card.high-risk .unified-risk-card-header i {
+            color: var(--error-red);
+        }
+
+        .unified-risk-card.high-risk .risk-tag {
+            background: #fff2f0;
+            color: var(--error-red);
+        }
+
+        /* 中度关注卡片样式 */
+        .unified-risk-card.medium-risk .unified-risk-card-header {
+            background: #fff7e6;
+        }
+
+        .unified-risk-card.medium-risk .unified-risk-card-header i {
+            color: var(--warning-orange);
+        }
+
+        .unified-risk-card.medium-risk .risk-tag {
+            background: #fff7e6;
+            color: var(--warning-orange);
+        }
+
+        /* 轻度关注卡片样式 */
+        .unified-risk-card.low-risk .unified-risk-card-header {
+            background: #f6ffed;
+        }
+
+        .unified-risk-card.low-risk .unified-risk-card-header i {
+            color: var(--success-green);
+        }
+
+        .unified-risk-card.low-risk .risk-tag {
+            background: #f6ffed;
+            color: var(--success-green);
+        }
+
+        /* 风险评估概要样式 */
+        .evaluation-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .evaluation-summary h3 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-number {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .summary-number0 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .summary-number1 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .summary-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* 固定底部按钮样式 */
+        .fixed-bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border-color-light);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: end;
+            gap: 16px;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        /* 为页面内容添加底部间距，避免被固定按钮遮挡 */
+        .page-container {
+            padding-bottom: 80px;
+        }
+
+        /* 卡片式布局样式 */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .info-card.selectable {
+            border: 2px solid #e5e7eb;
+        }
+
+        .info-card.selectable:hover {
+            border-color: var(--primary-blue-light);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .info-card.selectable.selected {
+            border-color: var(--primary-blue);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            background: #fafbfc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .card-header.non-selectable {
+            cursor: default;
+        }
+
+        .card-title-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary-blue);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .card-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .card-content {
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card-content.collapsed {
+            display: none;
+        }
+
+        /* Toast 提示样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* 任务类型标签样式 */
+        .task-type-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .task-type-tag {
+            background: var(--primary-blue-light);
+            color: var(--primary-blue);
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
+        }
+
+        /* 信息提示图标样式 */
+        .info-icon {
+            margin-left: 4px;
+            margin-right: 0px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #e5e7eb;
-            background: white;
-            color: #6b7280;
-        }
-        
-        .filter-btn.active {
-            background: #00A651;
-            color: white;
-            border-color: #00A651;
-        }
-        
-        .filter-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        /* 权限切换按钮样式 */
-        .permission-toggle-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            padding: 8px 10px;
-            color: white;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .permission-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-
-        .permission-toggle-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* 客户耗能详情模块样式 - 移动端优化 */
-        .energy-detail-module {
-            margin: 16px 0;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-            border: 1px solid #f0f0f0;
-        }
-
-        .energy-tabs-container {
-            background: #fff;
-        }
-
-        
-
-        .energy-tabs-nav {
-            display: flex;
-            background: white;
-            padding: 16px;
-            justify-content: center;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .energy-tab {
-            flex: 1;
-            padding: 8px 16px;
-            text-align: center;
-            background: #f8f9fa;
-            border: 1px solid #e5e7eb;
-            color: #6b7280;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            border-radius: 0;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .energy-tab:first-child {
-            border-radius: 6px 0 0 6px;
-            border-right: none;
-        }
-
-        .energy-tab:last-child {
-            border-radius: 0 6px 6px 0;
-            border-left: none;
-
-        }
-
-        .energy-tab.active {
-            background: #00A651;
-            color: white;
-            border-color: #00A651;
-            font-weight: 600;
-            z-index: 1;
+            font-size: 14px;
+            transition: all 0.2s ease;
             position: relative;
         }
 
-        .energy-tab:hover:not(.active) {
-            background: #e9ecef;
-            color: #495057;
+        .info-icon:hover {
+            transform: scale(1.1);
         }
 
-        .energy-tab-content-area {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        /* 高度关注卡片的信息图标 */
+        .unified-risk-card.high-risk .info-icon {
+            color: var(--error-red);
         }
 
-        .energy-tab-content {
+        /* 中度关注卡片的信息图标 */
+        .unified-risk-card.medium-risk .info-icon {
+            color: var(--warning-orange);
+        }
+
+        /* 轻度关注卡片的信息图标 */
+        .unified-risk-card.low-risk .info-icon {
+            color: var(--success-green);
+        }
+
+        /* 浮动提示框样式 */
+        .tooltip {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 999999;
+            min-width: 280px;
+            max-width: 320px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--text-primary);
             display: none;
-            padding: 16px 0;
+            margin-top: 8px;
         }
 
-        .energy-tab-content.active {
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 6px solid white;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-bottom: 7px solid var(--border-color);
+        }
+
+        .tooltip.show {
             display: block;
         }
 
-        .energy-tab-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .energy-card {
-            background: #fff;
-            border: 1px solid #f0f0f0;
-            border-radius: 10px;
-            margin-bottom: 16px;
-            overflow: hidden;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-        }
-
-        .energy-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-        .energy-card-header {
-            padding: 14px 16px;
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border-bottom: 1px solid #86efac;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .energy-card-title {
-            font-size: 15px;
+        .tooltip-title {
             font-weight: 600;
-            color: #16a34a;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .energy-card-title::before {
-            content: '';
-            width: 4px;
-            height: 16px;
-            background: linear-gradient(135deg, #00A651 0%, #00d084 100%);
-            border-radius: 2px;
-        }
-
-        .energy-card-body {
-            padding: 16px;
-        }
-
-        .energy-info-grid {
-            display: flex;
-            flex-direction: row;
-            gap: 24px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .energy-info-item {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            
-            transition: all 0.3s ease;
-            min-width: 120px;
-        }
-
-        .energy-info-item:hover {
-            background: #f0f9f0;
-            transform: translateY(-1px);
-        }
-
-        .energy-info-label {
-            font-size: 12px;
-            color: #666;
-            font-weight: 500;
-            white-space: nowrap;
-            min-width: 50px;
-        }
-
-        .energy-info-value {
-            font-size: 14px;
-            color: #333;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .energy-table-container {
-            overflow-x: auto;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .energy-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            min-width: 600px;
-        }
-
-        .energy-table th {
-            background: #f8f9fa;
-            padding: 12px 8px;
-            text-align: center;
-            font-weight: 600;
-            color: #333;
-            border-bottom: 1px solid #e9ecef;
-            white-space: nowrap;
-        }
-
-        .energy-table td {
-            padding: 12px 8px;
-            text-align: center;
-            border-bottom: 1px solid #f0f0f0;
-            color: #666;
-        }
-
-        .energy-table tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .energy-table tfoot td {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .energy-filter-form {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .energy-form-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .energy-form-label {
-            font-size: 14px;
-            color: #666;
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .energy-form-input {
-            padding: 8px 12px;
-            border: 1px solid #d9d9d9;
-            border-radius: 6px;
-            font-size: 14px;
-            min-width: 120px;
-        }
-
-        .energy-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .energy-btn-primary {
-            background: #00A651;
-            color: #fff;
-            border-color: #00A651;
-        }
-
-        .energy-btn-primary:hover {
-            background: #008A44;
-            border-color: #008A44;
-        }
-
-        .energy-btn-default {
-            background: #fff;
-            color: #666;
-            border-color: #d9d9d9;
-        }
-
-        .energy-btn-default:hover {
-            color: #00A651;
-            border-color: #00A651;
-        }
-
-        .energy-alert {
-            padding: 12px 16px;
-            background: #fff7e6;
-            border: 1px solid #ffd591;
-            border-radius: 6px;
-            color: #d46b08;
-            font-size: 14px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* 查看建议按钮样式 */
-        .suggestion-btn {
-            background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
-        }
-
-        .suggestion-btn:hover {
-            background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
-        }
-
-        .suggestion-btn:active {
-            transform: translateY(0);
-        }
-
-        /* 补贴计算器弹窗样式 - 移动端优化 */
-        .calculator-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .calculator-modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 65vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            animation: modalSlideIn 0.3s ease-out;
-            
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .calculator-modal-header {
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 12px 12px 0 0;
-            position: sticky; top: 0;
-        }
-
-        .calculator-modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .calculator-modal-title::before {
-            content: '';
-            width: 4px;
-            height: 20px;
-            background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
-            border-radius: 2px;
-        }
-
-        .calculator-close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #666;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .calculator-close-btn:hover {
-            background: #f5f5f5;
-            color: #333;
-        }
-
-        .calculator-modal-body {
-            padding: 20px;
-        }
-
-        .calculator-subsidy-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-            padding: 16px;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-            border-radius: 8px;
-            border: 1px solid #91d5ff;
-        }
-
-        .calculator-subsidy-item {
-            text-align: center;
-        }
-
-        .calculator-subsidy-label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-
-        .calculator-subsidy-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1890ff;
-        }
-
-        .calculator-form-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 16px;
-            gap: 16px;
-        }
-
-        .calculator-form-label {
-            min-width: 100px;
-            font-weight: 500;
-            color: #333;
-            font-size: 14px;
-        }
-
-        .calculator-form-input,
-        .calculator-form-select {
-            flex: 1;
-            padding: 10px 12px;
-            border: 1px solid #d9d9d9;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .calculator-form-input:focus,
-        .calculator-form-select:focus {
-            outline: none;
-            border-color: #1890ff;
-            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
-        }
-
-        .calculator-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-        }
-
-        .calculator-btn-primary {
-            background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
-            color: white;
-            box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
-        }
-
-        .calculator-btn-primary:hover {
-            background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
-        }
-
-        .calculator-btn-success {
-            background: #00A651;
-            color: white;
-            box-shadow: 0 2px 4px rgba(82, 196, 26, 0.2);
-        }
-
-        .calculator-btn-success:hover {
-            background: #00A651
-            
-
-        }
-
-        .calculator-result {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-            padding: 16px;
-            border-radius: 8px;
-            text-align: center;
-            display: none;
-            border: 1px solid #91d5ff;
-        }
-
-        .calculator-result-label {
-            font-size: 14px;
-            color: #666;
             margin-bottom: 8px;
+            color: var(--text-primary);
         }
 
-        .calculator-result-value {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1890ff;
-            margin-bottom: 12px;
-        }
-
-        .calculator-tip {
-            background: linear-gradient(135deg, #fffbe6 0%, #fff7e6 100%);
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 16px;
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
-            border: 1px solid #ffe58f;
-        }
-
-        .calculator-description {
-            background: #f8f9fa;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #666;
-            border: 1px solid #e9ecef;
-        }
-
-        .calculator-description h4 {
-            margin: 0 0 12px 0;
-            color: #333;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .calculator-description p {
-            margin: 0 0 8px 0;
-        }
-
-        /* 移动端适配 */
-        @media (max-width: 768px) {
-            .energy-tab {
-                min-width: 100px;
-                padding: 10px 12px;
-                font-size: 13px;
-            }
-
-            .energy-tab-content {
-                padding: 16px;
-            }
-
-            .energy-card-header {
-                padding: 12px 16px;
-            }
-
-            .energy-card-body {
-                padding: 16px;
-            }
-
-            .energy-info-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .energy-filter-form {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-
-            .energy-form-group {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 6px;
-            }
-
-            .energy-form-input {
-                min-width: auto;
-            }
-
-            .energy-btn {
-                width: 100%;
-                margin-top: 8px;
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-
-            .energy-table {
-                font-size: 12px;
-                min-width: 500px;
-            }
-
-            .energy-table th,
-            .energy-table td {
-                padding: 8px 6px;
-            }
-
-            /* 查看建议按钮移动端优化 */
-            .suggestion-btn {
-                padding: 10px 14px;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-
-            /* 补贴计算器弹窗移动端优化 */
-            .calculator-modal {
-                padding: 10px;
-            }
-
-            .calculator-modal-content {
-                max-width: 100%;
-                max-height: 70vh;
-                border-radius: 16px;
-            }
-
-            .calculator-modal-header {
-                padding: 16px 16px 12px;
-                border-radius: 16px 16px 0 0;
-            }
-
-            .calculator-modal-title {
-                font-size: 16px;
-            }
-
-            .calculator-modal-body {
-                padding: 16px;
-            }
-
-            .calculator-subsidy-info {
-                grid-template-columns: 1fr;
-                gap: 12px;
-                margin-bottom: 20px;
-                padding: 12px;
-            }
-
-            .calculator-subsidy-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                text-align: left;
-            }
-
-            .calculator-subsidy-label {
-                font-size: 13px;
-                margin-bottom: 0;
-            }
-
-            .calculator-subsidy-value {
-                font-size: 15px;
-            }
-
-            .calculator-form-row {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-                margin-bottom: 20px;
-            }
-
-            .calculator-form-label {
-                min-width: auto;
-                font-size: 13px;
-                margin-bottom: 4px;
-            }
-
-            .calculator-form-input,
-            .calculator-form-select {
-                padding: 12px;
-                font-size: 15px;
-                border-radius: 8px;
-            }
-
-            .calculator-btn {
-                padding: 14px;
-                font-size: 15px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-            }
-
-            .calculator-result-value {
-                font-size: 20px;
-            }
-
-            .calculator-tip,
-            .calculator-description {
-                padding: 12px;
-                font-size: 13px;
-                line-height: 1.5;
-                border-radius: 8px;
-            }
-
-            .calculator-description h4 {
-                font-size: 15px;
-                margin-bottom: 8px;
-            }
+        .tooltip-content {
+            color: var(--text-secondary);
         }
     </style>
 </head>
-<body class="bg-gray-50 mobile-container">
-    <!-- 状态栏 -->
-    <div class="bg-postal-green h-6"></div>
-    
-    <!-- 头部导航 -->
-    <div class="bg-postal-green text-white">
-        <div class="mobile-content flex items-center justify-between py-3">
-            <div class="flex items-center">
-                <button onclick="goBack()" class="mr-3">
-                    <i class="fas fa-arrow-left text-lg"></i>
-                </button>
-                <h1 class="text-lg font-medium" id="page-title">商户详情</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <!-- 权限切换测试按钮 -->
-                <button onclick="togglePermission()" class="permission-toggle-btn" title="点击切换权限状态">
-                    <i class="fas fa-key"></i>
-                </button>
-                <button>
-                    <i class="fas fa-ellipsis-h"></i>
-                </button>
-                <button>
-                    <i class="fas fa-clock"></i>
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- 顶部基础信息模块 -->
-    <div class="mobile-content mt-4">
-        <div class="postal-card p-4">
-            <div class="flex items-center mb-4">
-                <div class="w-12 h-12 bg-postal-green rounded-full flex items-center justify-center mr-4">
-                    <i class="fas fa-store text-white text-lg"></i>
-                </div>
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900" id="merchant-name">星巴克咖啡店</h2>
-                    <!-- <p class="text-sm text-gray-500">优质商户</p> -->
-                </div>
-            </div>
-            
-            <div class="space-y-3">
-                <div class="flex items-center py-2 border-b border-gray-100">
-                    <div class="w-20 text-sm text-gray-500">商户号</div>
-                    <div class="flex-1 text-sm text-gray-800 font-medium">SH202401001234</div>
-                </div>
-                
-                <div class="flex items-center py-2 border-b border-gray-100">
-                    <div class="w-20 text-sm text-gray-500">负责人</div>
-                    <div class="flex-1 text-sm text-gray-800 font-medium">张经理</div>
-                </div>
-                
-                <div class="flex items-center py-2 border-b border-gray-100">
-                    <div class="w-20 text-sm text-gray-500">负责人手机号</div>
-                    <div class="flex-1 text-sm text-gray-800 font-medium">13866665678</div>
-                </div>
-                
-                <div class="flex items-center py-2 border-b border-gray-100">
-                    <div class="w-20 text-sm text-gray-500">客户经理</div>
-                    <div class="flex-1 text-sm text-gray-800 font-medium">李四</div>
-                </div>
-                
-                <div class="flex items-center py-2">
-                    <div class="w-20 text-sm text-gray-500">客户经理手机号</div>
-                    <div class="flex-1 text-sm text-gray-800 font-medium">13944469876</div>
-                </div>
-            </div>
-        </div>
-    </div>
+<body>
+    <div class="page-container">
+        <!-- 页面标题 -->
 
-    <!-- 预警概览模块 -->
-    <div class="mobile-content mt-4">
-        <div class="postal-card p-4">
-            <h3 class="text-base font-medium text-gray-900 mb-4">预警概览</h3>
-            
-            <div class="grid grid-cols-3 gap-4">
-                <!-- 高度关注 -->
-                <div class="stats-card p-3 text-center">
-                    <!-- <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-exclamation-triangle text-warning-red"></i>
-                    </div> -->
-                    <div class="text-xl font-bold text-warning-red">4</div>
-                    <div class="text-xs text-gray-600 mt-1">高度关注</div>
-                </div>
-                
-                <!-- 中度关注 -->
-                <div class="stats-card p-3 text-center">
-                    <!-- <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-exclamation-circle text-warning-orange"></i>
-                    </div> -->
-                    <div class="text-xl font-bold text-warning-orange">4</div>
-                    <div class="text-xs text-gray-600 mt-1">中度关注</div>
-                </div>
-                
-                <!-- 轻度关注 -->
-                <div class="stats-card p-3 text-center">
-                    <!-- <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-info-circle text-green-500"></i>
-                    </div> -->
-                    <div class="text-xl font-bold text-green-500">2</div>
-                    <div class="text-xs text-gray-600 mt-1">轻度关注</div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 预警详情模块 -->
-    <div class="mobile-content mt-4">
-        <div class="postal-card p-4">
-            <h3 class="text-base font-medium text-gray-900 mb-4">预警指标</h3>
-            
-            <!-- Tab 导航 -->
-            <div class="flex bg-gray-100 rounded-lg p-1 mb-4">
-                <button id="tab-trade" class="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 tab-active" onclick="switchTab('trade')">
-                    <i class="fas fa-chart-line mr-2"></i>
-                    交易预警(6)
-                </button>
-                <button id="tab-subsidy" class="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 tab-inactive" onclick="switchTab('subsidy')">
-                    <i class="fas fa-battery-half mr-2"></i>
-                    补贴耗能预警(3)
-                </button>
-            </div>
-
-            <!-- 交易预警指标内容 -->
-            <div id="content-trade" class="space-y-3">
-                <!-- 预警评估日期 -->
-                <div class="assessment-date">
-                    <i class="fas fa-calendar-alt assessment-date-icon"></i>
-                    <span class="assessment-date-text">预警评估日期：</span>
-                    <span class="assessment-date-value">2025年10月15日</span>
-                </div>
-                
-                <!-- 交易预警级别过滤器 -->
-                <div class="level-filter">
-                    <button class="filter-btn active" onclick="filterTradeByLevel('all')">全部</button>
-                    <button class="filter-btn" onclick="filterTradeByLevel('high')">高度关注</button>
-                    <button class="filter-btn" onclick="filterTradeByLevel('medium')">中度关注</button>
-                    <button class="filter-btn" onclick="filterTradeByLevel('low')">轻度关注</button>
-                </div>
-
-                <!-- 高度关注指标 -->
-                <!-- 优惠交易占比 -->
-                <div class="indicator-card alert-high" data-level="high">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-percentage indicator-icon text-red-500"></i>
-                            <span>优惠交易占比</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="showTooltip(this, event);"></i>
-                                <div class="tooltip-content">
-                                    优惠交易占比指标说明：监测商户优惠类交易在总交易中的占比情况，过高可能存在套现风险。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-high">高度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：65%</div>
-                    </div>
-                </div>
-
-                <!-- 单人交易占比 -->
-                <div class="indicator-card alert-high" data-level="high">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-user indicator-icon text-red-500"></i>
-                            <span>单人交易占比</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="showTooltip(this)"></i>
-                                <div class="tooltip-content">
-                                    单人交易占比指标说明：监测单一持卡人在商户的交易占比，过高可能存在关联交易风险。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-high">高度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：15%</div>
-                    </div>
-                </div>
-
-                <!-- 交易流失 -->
-                <div class="indicator-card alert-high" data-level="high">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-chart-line-down indicator-icon text-red-500"></i>
-                            <span>交易流失</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    交易流失指标说明：监测商户交易量环比下降情况，大幅下降可能存在经营异常风险。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-high">高度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：-25%</div>
-                    </div>
-                </div>
-
-                <!-- 中度关注指标 -->
-                <!-- 信用卡交易占比 -->
-                <div class="indicator-card alert-medium" data-level="medium">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-credit-card indicator-icon text-orange-500"></i>
-                            <span>信用卡交易占比</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    信用卡交易占比指标说明：监测信用卡交易在总交易中的占比，过高需关注套现风险。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-medium">中度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：75%</div>
-                    </div>
-                </div>
-
-                <!-- 交易时间范围 -->
-                <div class="indicator-card alert-medium" data-level="medium">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-clock indicator-icon text-orange-500"></i>
-                            <span>交易时间范围</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    交易时间范围指标说明：监测商户非正常营业时间的交易情况，异常时间交易需重点关注。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-medium">中度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：22:00-02:00</div>
-                    </div>
-                </div>
-
-                <!-- 跨市交易 -->
-                <div class="indicator-card alert-medium" data-level="medium">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-map-marker-alt indicator-icon text-orange-500"></i>
-                            <span>跨市交易</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    跨市交易指标说明：监测商户异地交易情况，频繁跨市交易可能存在移机风险。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-medium">中度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：8笔</div>
-                    </div>
-                </div>
-
-                <!-- 轻度关注指标 -->
-                <!-- 笔均交易 -->
-                <div class="indicator-card alert-low" data-level="low">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-calculator indicator-icon text-green-500"></i>
-                            <span>笔均交易</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    笔均交易指标说明：监测商户平均每笔交易金额，异常的笔均金额可能存在风险。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-low">轻度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：35元</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 补贴耗能预警指标内容 -->
-            <div id="content-subsidy" class="space-y-3 hidden">
-                <!-- 补贴耗能预警级别过滤器 -->
-                <div class="level-filter">
-                    <button class="filter-btn active" onclick="filterSubsidyByLevel('all')">全部</button>
-                    <button class="filter-btn" onclick="filterSubsidyByLevel('high')">高度关注</button>
-                    <button class="filter-btn" onclick="filterSubsidyByLevel('medium')">中度关注</button>
-                    <button class="filter-btn" onclick="filterSubsidyByLevel('low')">轻度关注</button>
-                </div>
-
-                <!-- 高度关注指标 -->
-                <!-- 成本同比增长 -->
-                <div class="indicator-card alert-high" data-level="high">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-trending-up indicator-icon text-red-500"></i>
-                            <span>成本同比增长</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    成本同比增长指标说明：监测商户补贴成本同比增长情况，增长过快可能存在补贴滥用风险。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-high">高度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：+37%</div>
-                    </div>
-                </div>
-
-                <!-- 中度关注指标 -->
-                <!-- 当月预估耗能 -->
-                <div class="indicator-card alert-medium" data-level="medium">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-chart-bar indicator-icon text-orange-500"></i>
-                            <span>当月预估耗能</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    当月预估耗能指标说明：基于历史数据预测当月补贴耗能情况，超出预算需关注。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-medium">中度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：8,500元</div>
-                    </div>
-                </div>
-
-                <!-- 轻度关注指标 -->
-                <!-- 上月实际耗能 -->
-                <div class="indicator-card alert-low" data-level="low">
-                    <div class="indicator-title">
-                        <div class="indicator-name">
-                            <i class="fas fa-history indicator-icon text-green-500"></i>
-                            <span>上月实际耗能</span>
-                            <div class="tooltip">
-                                <i class="fas fa-question-circle tooltip-icon" onclick="toggleTooltip(this, event)"></i>
-                                <div class="tooltip-content">
-                                    上月实际耗能指标说明：记录上月实际补贴耗能情况，作为当月预测的基础数据。
-                                </div>
-                            </div>
-                        </div>
-                        <span class="status-badge status-low">轻度关注</span>
-                    </div>
-                    <div class="card-content">
-                        <div class="indicator-reason">判定原因：6,200元</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 客户耗能详情模块 -->
-    <div class="mobile-content energy-detail-module" id="energy-detail-module">
-        <div class="energy-tabs-container">
+        <!-- 纵向Tab布局 -->
+        <div class="tabs-container">
             <!-- Tab导航 -->
-            <div class="energy-tabs-nav">
-                <button class="energy-tab active" onclick="switchEnergyTab('current-month')">
-                    <i class="fas fa-calendar-day"></i>
-                    客户本月耗能详情
-                </button>
-                <button class="energy-tab" onclick="switchEnergyTab('history-month')">
+            <div class="tabs-nav">
+                <div class="tab active" onclick="switchTab('risk')">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    资料预警报告
+                </div>
+                <div class="tab" onclick="switchTab('audit')">
+                    <i class="fas fa-clipboard-check"></i>
+                    商户详情
+                </div>
+                <div class="tab" onclick="switchTab('history')">
                     <i class="fas fa-history"></i>
-                    客户往期耗能详情
-                </button>
+                    操作记录
+                </div>
             </div>
 
             <!-- Tab内容区域 -->
-            <!-- <div class="energy-tab-content-area"> -->
-                <!-- 本月耗能详情Tab -->
-                <div id="energy-current-month-tab" class="energy-tab-content active">
-                    <div class="energy-tab-header">
-                        <h3 class="energy-card-title">客户本月耗能详情</h3>
-                        <button class="energy-btn energy-btn-primary" onclick="showEnergyAdvice()">
-                            <i class="fas fa-calculator"></i>
-                            查看建议
-                        </button>
+            <div class="tab-content-area">
+
+                <!-- 审查详情Tab -->
+                <div id="audit-tab" class="tab-content">
+
+                    <div class="tab-header">
+                        <h3 class="card-title1">商户详情</h3>
                     </div>
-                    
-                    <!-- 客户信息模块 -->
-                    <div class="indicator-card">
-                        <div class="indicator-title">
-                            <div class="indicator-name">
-                                <i class="fas fa-user indicator-icon text-blue-500"></i>
-                                <span>客户信息</span>
-                                <button class="energy-btn energy-btn-primary" onclick="showEnergyAdvice()">
-                            <i class="fas fa-calculator"></i>
-                            查看建议
-                        </button>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="energy-info-grid">
-                                <div class="energy-info-item">
-                                    <div class="energy-info-label">客户号</div>
-                                    <div class="energy-info-value">12345677</div>
+                    <div class="tab-body">
+                        <!-- 通道信息 -->
+                        <div class="info-card">
+                            <div class="card-header non-selectable">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">上游驳回信息（有展示，没有隐藏）</h3>
                                 </div>
-                                <div class="energy-info-item">
-                                    <div class="energy-info-label">客户名称</div>
-                                    <div class="energy-info-value">张三</div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">驳回原因</div>
+                                        <div class="info-value">-</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 本月预警-商户网点成本及收益情况模块 -->
-                    <div class="indicator-card alert-high" data-level="high">
-                        <div class="indicator-title">
-                            <div class="indicator-name">
-                                <i class="fas fa-store indicator-icon text-red-500"></i>
-                                <span>本月预警-商户网点成本及收益情况</span>
+                        <!-- 审查信息 -->
+                        <div class="info-card">
+                            <div class="card-header non-selectable">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">审查信息</h3>
+                                </div>
                             </div>
-                            <span class="status-badge status-high">高度关注</span>
-                        </div>
-                        <div class="card-content">
-                            <div class="energy-table-container">
-                                <table class="energy-table">
-                                    <thead>
-                                        <tr>
-                                            <th>商户号</th>
-                                            <th>商户名称</th>
-                                            <th>营业所</th>
-                                            <th>本月已使用成本</th>
-                                            <th>预估收益</th>
-                                            <th>剩余补贴空间</th>
-                                            <th>已补贴比例</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>M202401001</td>
-                                            <td>张三便利店</td>
-                                            <td>朝阳营业所</td>
-                                            <td>6,500元</td>
-                                            <td rowspan="2">11,000元</td>
-                                            <td rowspan="2">4,300元</td>
-                                            <td rowspan="2">97.3%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401002</td>
-                                            <td>张三超市</td>
-                                            <td>朝阳营业所</td>
-                                            <td>4,200元</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="3">汇总</td>
-                                            <td>10,700元</td>
-                                            <td colspan="3"></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">审查时间</div>
+                                        <div class="info-value">2024-01-16 09:15:30</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">审查状态</div>
+                                        <div class="info-value"><span class="status-tag status-pending">待审查</span></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 本月预警-商户全省成本及收益情况模块 -->
-                    <div class="indicator-card alert-medium" data-level="medium">
-                        <div class="indicator-title">
-                            <div class="indicator-name">
-                                <i class="fas fa-map-marked-alt indicator-icon text-orange-500"></i>
-                                <span>本月预警-商户全省成本及收益情况</span>
+                        <!-- 机构信息 -->
+                        <div class="info-card">
+                            <div class="card-header non-selectable">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">机构信息</h3>
+                                </div>
                             </div>
-                            <span class="status-badge status-medium">中度关注</span>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">市级分公司</div>
+                                        <div class="info-value">北京分公司</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">区县分公司</div>
+                                        <div class="info-value">朝阳区分公司</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">营业所</div>
+                                        <div class="info-value">朝阳路营业所</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">所属客户经理</div>
+                                        <div class="info-value">李四</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">联系方式</div>
+                                        <div class="info-value">13800138001</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <div class="energy-table-container">
-                                <table class="energy-table">
-                                    <thead>
-                                        <tr>
-                                            <th>商户号</th>
-                                            <th>商户名称</th>
-                                            <th>市级分公司</th>
-                                            <th>区县分公司</th>
-                                            <th>营业所</th>
-                                            <th>本月已使用成本</th>
-                                            <th>预估收益</th>
-                                            <th>剩余补贴空间</th>
-                                            <th>已补贴比例</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>M202401001</td>
-                                            <td>张三便利店</td>
-                                            <td>北京分公司</td>
-                                            <td>朝阳区分公司</td>
-                                            <td rowspan="2">朝阳营业所</td>
-                                            <td>6,500元</td>
-                                            <td rowspan="2">27,000元</td>
-                                            <td rowspan="4">8,300元</td>
-                                            <td rowspan="4">69.2%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401002</td>
-                                            <td>张三超市</td>
-                                            <td>北京分公司</td>
-                                            <td>朝阳区分公司</td>
-                                            <td>4,200元</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401003</td>
-                                            <td>张三便利超市</td>
-                                            <td>北京分公司</td>
-                                            <td>海淀区分公司</td>
-                                            <td>海淀营业所</td>
-                                            <td>4,200元</td>
-                                            <td>12,000元</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401004</td>
-                                            <td>张三商贸</td>
-                                            <td>北京分公司</td>
-                                            <td>丰台区分公司</td>
-                                            <td>丰台营业所</td>
-                                            <td>8,900元</td>
-                                            <td>18,500元</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="5">汇总</td>
-                                            <td>23,800元</td>
-                                            <td>57,500元</td>
-                                            <td colspan="2"></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+
+                        <!-- 商户基本信息 -->
+                        <div class="info-card">
+                            <div class="card-header non-selectable">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">商户基本信息</h3>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">商户号</div>
+                                        <div class="info-value">M202401001</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">商户名称</div>
+                                        <div class="info-value">北京张三便利店有限公司</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">商户类型</div>
+                                        <div class="info-value">个体工商户</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">经营范围</div>
+                                        <div class="info-value">日用百货、食品销售</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">进件时间</div>
+                                        <div class="info-value">2024-01-15 14:30:25</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 负责人信息 -->
+                        <div class="info-card">
+                            <div class="card-header non-selectable">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">负责人信息</h3>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">负责人</div>
+                                        <div class="info-value">张三</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">身份证号</div>
+                                        <div class="info-value">110101199001011234</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">手机号</div>
+                                        <div class="info-value">13800138001</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 基础资料 -->
+                        <div class="info-card selectable" data-task-type="基础资料补充任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">基础资料</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">商户简称</div>
+                                        <div class="info-value">张三便利店</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">商户地址</div>
+                                        <div class="info-value">北京市朝阳区朝阳路123号</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 经营名称 -->
+                        <div class="info-card selectable" data-task-type="经营名称修改">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">经营名称</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">经营名称</div>
+                                        <div class="info-value">张三便利店</div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 商户标签 -->
+                        <div class="info-card selectable" data-task-type="商户标签资料任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">商户标签</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">商户标签</div>
+                                        <div class="info-value"><span
+                                                class="status-tag1 status-pending">固定场所</span><span
+                                                class="status-tag1 status-pending">批发市场</span><span
+                                                class="status-tag status-pending">水果</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 店面照片 -->
+                        <div class="info-card selectable" data-task-type="三照补充任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">店面照片</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="photo-grid">
+                                    <!-- 门头照片展位图 -->
+                                    <div class="photo-item">
+                                        <!-- SVG展位图：门头照片 -->
+                                        <svg width="120" height="120" viewBox="0 0 120 80" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            style="background:#f3f4f6;border-radius:8px;">
+                                            <rect width="120" height="80" rx="8" fill="#f3f4f6" />
+                                            <rect x="20" y="40" width="80" height="24" rx="4" fill="#e5e7eb" />
+                                            <rect x="30" y="20" width="60" height="20" rx="3" fill="#d1d5db" />
+                                            <text x="60" y="60" text-anchor="middle" fill="#9ca3af" font-size="12"
+                                                font-family="Arial" dy="0.35em">门头照片</text>
+                                        </svg>
+                                        <div class="photo-label">门头照片</div>
+                                    </div>
+                                    <!-- 收银台场景照展位图 -->
+                                    <div class="photo-item">
+                                        <!-- SVG展位图：收银台场景照 -->
+                                        <svg width="120" height="120" viewBox="0 0 120 80" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            style="background:#f3f4f6;border-radius:8px;">
+                                            <rect width="120" height="80" rx="8" fill="#f3f4f6" />
+                                            <rect x="15" y="50" width="90" height="18" rx="4" fill="#e5e7eb" />
+                                            <rect x="35" y="30" width="50" height="16" rx="3" fill="#d1d5db" />
+                                            <circle cx="60" cy="40" r="8" fill="#e5e7eb" />
+                                            <text x="60" y="65" text-anchor="middle" fill="#9ca3af" font-size="12"
+                                                font-family="Arial" dy="0.35em">收银台场景照</text>
+                                        </svg>
+                                        <div class="photo-label">收银台场景照</div>
+                                    </div>
+                                    <!-- 店内场景照展位图 -->
+                                    <div class="photo-item">
+                                        <!-- SVG展位图：店内场景照 -->
+                                        <svg width="120" height="120" viewBox="0 0 120 80" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            style="background:#f3f4f6;border-radius:8px;">
+                                            <rect width="120" height="80" rx="8" fill="#f3f4f6" />
+                                            <rect x="18" y="30" width="84" height="30" rx="6" fill="#e5e7eb" />
+                                            <rect x="30" y="20" width="20" height="10" rx="2" fill="#d1d5db" />
+                                            <rect x="70" y="20" width="20" height="10" rx="2" fill="#d1d5db" />
+                                            <text x="60" y="60" text-anchor="middle" fill="#9ca3af" font-size="12"
+                                                font-family="Arial" dy="0.35em">店内场景照</text>
+                                        </svg>
+                                        <div class="photo-label">店内场景照</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 营业执照信息 -->
+                        <div class="info-card selectable" data-task-type="营业执照补充任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">营业执照信息</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">营业执照正面</div>
+                                        <div class="info-value">图片占位</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">营业执照号</div>
+                                        <div class="info-value">91110105MA01234567</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">营业地址</div>
+                                        <div class="info-value">北京市朝阳区朝阳路123号</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">是否长期执照</div>
+                                        <div class="info-value">是</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">起始时间</div>
+                                        <div class="info-value">2023-06-15</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 法人信息 -->
+                        <div class="info-card selectable" data-task-type="法人身份证补充任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">法人信息</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">身份证正面</div>
+                                        <div class="info-value">图片占位</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">身份证国徽面</div>
+                                        <div class="info-value">图片占位</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">姓名</div>
+                                        <div class="info-value">灵心</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">手机号</div>
+                                        <div class="info-value">13800138001</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">证件类型</div>
+                                        <div class="info-value">身份证</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">证件号码</div>
+                                        <div class="info-value">110101199001011234</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">法人地址</div>
+                                        <div class="info-value">北京市朝阳区朝阳路123号</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">证件类型</div>
+                                        <div class="info-value">身份证</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">是否长期证件</div>
+                                        <div class="info-value">否</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">证件起始时间</div>
+                                        <div class="info-value">2023-06-15</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">证件结束时间</div>
+                                        <div class="info-value">2043-06-15</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 结算人信息 -->
+                        <div class="info-card selectable" data-task-type="结算人身份证补充任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">结算人信息</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">身份证正面</div>
+                                        <div class="info-value">图片占位</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">身份证国徽面</div>
+                                        <div class="info-value">图片占位</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">手持身份证</div>
+                                        <div class="info-value">图片占位</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">姓名</div>
+                                        <div class="info-value">灵心</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">手机号</div>
+                                        <div class="info-value">13800138001</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">证件类型</div>
+                                        <div class="info-value">身份证</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">证件号码</div>
+                                        <div class="info-value">110101199001011234</div>
+                                    </div>
+
+                                    <div class="info-item">
+                                        <div class="info-label">证件类型</div>
+                                        <div class="info-value">身份证</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">是否长期证件</div>
+                                        <div class="info-value">否</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">证件起始时间</div>
+                                        <div class="info-value">2023-06-15</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">证件结束时间</div>
+                                        <div class="info-value">2043-06-15</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 结算银行信息 -->
+                        <div class="info-card selectable" data-task-type="银行卡补充任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">结算银行信息</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-label">银行卡正面</div>
+                                        <div class="info-value">图片占位</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">结算银行</div>
+                                        <div class="info-value">中国邮政储蓄银行朝阳支行</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">结算联行号</div>
+                                        <div class="info-value">403100000007</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">银行卡号</div>
+                                        <div class="info-value">6222021234567890123</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 非法人授权函 -->
+                        <div class="info-card selectable" data-task-type="非法人授权书补充任务">
+                            <div class="card-header" onclick="toggleCardExpansion(this)">
+                                <div class="card-title-section">
+                                    <input type="checkbox" class="card-checkbox" onchange="toggleCardSelection(this)"
+                                        onclick="event.stopPropagation()">
+                                    <h3 class="card-title">非法人授权函</h3>
+                                </div>
+                                <div class="card-toggle">
+                                    <span>展开</span>
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <div class="info-value" style="display: flex; align-items: center; gap: 16px;">
+                                            <!-- 图片占位图：非法人授权函 -->
+                                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                style="background:#f3f4f6; border-radius:8px;">
+                                                <rect width="80" height="80" rx="8" fill="#f3f4f6" />
+                                                <rect x="16" y="20" width="48" height="40" rx="4" fill="#e5e7eb" />
+                                                <rect x="16" y="20" width="48" height="10" rx="2" fill="#e53e3e" />
+                                                <text x="40" y="28" text-anchor="middle" fill="#fff" font-size="12"
+                                                    font-family="Arial" font-weight="bold">--</text>
+                                                <text x="40" y="52" text-anchor="middle" fill="#9ca3af" font-size="12"
+                                                    font-family="Arial" dy="0.35em">非法人授权函</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
 
-                <!-- 往期耗能详情Tab -->
-                <div id="energy-history-month-tab" class="energy-tab-content">
-                    <div class="energy-tab-header">
-                        <h3 class="energy-card-title">客户往期耗能详情</h3>
-                        <button class="energy-btn energy-btn-primary" onclick="showEnergyAdvice()">
-                            <i class="fas fa-calculator"></i>
-                            查看建议
-                        </button>
+                <!-- 风险详情Tab -->
+                <div id="risk-tab" class="tab-content active" style="display: block;">
+                    <div class="tab-header">
+                        <h3 class="card-title1">预警报告</h3>
                     </div>
-
-                    <!-- 提示信息 -->
-                    <div class="energy-alert">
-                        <i class="fas fa-info-circle"></i>
-                        <span>客户每月成本和收益数据于次月10号产出。</span>
-                    </div>
-
-                    <!-- 查询条件模块 -->
-                    <div class="indicator-card">
-                        <div class="indicator-title">
-                            <div class="indicator-name">
-                                <i class="fas fa-search indicator-icon text-green-500"></i>
-                                <span>查询条件</span>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="energy-filter-form">
-                                <div class="energy-form-group">
-                                    <label class="energy-form-label">查询时间：</label>
-                                    <input type="month" id="energyStartMonth" value="2025-08" class="energy-form-input">
-                                    <span>至</span>
-                                    <input type="month" id="energyEndMonth" value="2025-08" class="energy-form-input">
+                    <div class="tab-body">
+                        <!-- 风险评估概要 -->
+                        <div class="evaluation-summary">
+                            <h3><i class="fas fa-chart-line"></i> 预警概览</h3>
+                            <div class="summary-grid">
+                                <div class="summary-item">
+                                    <div class="summary-number0">张三便利店</span>
+                                    </div>
+                                    <div class="summary-label">商户名称 </div>
                                 </div>
-                                <button class="energy-btn energy-btn-primary" onclick="queryEnergyHistoryData()">
-                                    <i class="fas fa-search"></i>
-                                    查询
-                                </button>
-                                <button class="energy-btn energy-btn-default" onclick="resetEnergyFilter()">
-                                    <i class="fas fa-undo"></i>
-                                    重置
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 客户信息模块 -->
-                    <div class="indicator-card">
-                        <div class="indicator-title">
-                            <div class="indicator-name">
-                                <i class="fas fa-user indicator-icon text-blue-500"></i>
-                                <span>客户信息</span>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="energy-info-grid">
-                                <div class="energy-info-item">
-                                    <div class="energy-info-label">客户号</div>
-                                    <div class="energy-info-value">12345677</div>
+                                <div class="summary-item">
+                                    <div class="summary-number">高度关注</div>
+                                    <div class="summary-label">综合预警等级</div>
                                 </div>
-                                <div class="energy-info-item">
-                                    <div class="energy-info-label">客户名称</div>
-                                    <div class="energy-info-value">张三</div>
+                                <div class="summary-item">
+                                    <div class="summary-number">1个</div>
+                                    <div class="summary-label">高度关注指标</div>
+                                </div>
+                                <div class="summary-item">
+                                    <div class="summary-number">3个</div>
+                                    <div class="summary-label">中度关注指标</div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 往期预警-商户网点成本及收益情况模块 -->
-                    <div class="indicator-card alert-high" data-level="high">
-                        <div class="indicator-title">
-                            <div class="indicator-name">
-                                <i class="fas fa-store indicator-icon text-red-500"></i>
-                                <span>往期预警-商户网点成本及收益情况</span>
-                            </div>
-                            <span class="status-badge status-high">高度关注</span>
-                        </div>
-                        <div class="card-content">
-                            <div class="energy-table-container">
-                                <table class="energy-table">
-                                    <thead>
-                                        <tr>
-                                            <th>商户号</th>
-                                            <th>商户名称</th>
-                                            <th>营业所</th>
-                                            <th>已使用成本</th>
-                                            <th>实际收益</th>
-                                            <th>剩余补贴空间</th>
-                                            <th>已补贴比例</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>M202401001</td>
-                                            <td>张三便利店</td>
-                                            <td>朝阳营业所</td>
-                                            <td>6,500元</td>
-                                            <td rowspan="2">11,000元</td>
-                                            <td rowspan="2">4,300元</td>
-                                            <td rowspan="2">97.3%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401002</td>
-                                            <td>张三超市</td>
-                                            <td>朝阳营业所</td>
-                                            <td>4,200元</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="3">汇总</td>
-                                            <td>10,700元</td>
-                                            <td colspan="3"></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- 往期预警-商户全省成本及收益情况模块 -->
-                    <div class="indicator-card alert-medium" data-level="medium">
-                        <div class="indicator-title">
-                            <div class="indicator-name">
-                                <i class="fas fa-map-marked-alt indicator-icon text-orange-500"></i>
-                                <span>往期预警-商户全省成本及收益情况</span>
+
+                        <!-- 高度关注指标区域 -->
+                        <div class="risk-section">
+                            <div class="risk-section-title high-risk">
+                                <i class="fas fa-exclamation-circle"></i>
+                                高度关注指标
                             </div>
-                            <span class="status-badge status-medium">中度关注</span>
+                            <div class="risk-cards-grid">
+                                <div class="unified-risk-card high-risk">
+                                    <div class="unified-risk-card-header" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-redo-alt"></i>
+                                            <span class="risk-title">进件次数</span>
+                                            <i class="fas fa-info-circle info-icon" onclick="toggleTooltip(this)"></i>
+                                            <div class="tooltip">
+                                                <div class="tooltip-title">判定标准</div>
+                                                <div class="tooltip-content">
+                                                    根据商户类型统计结算人证件或营业执照号进件次数<br>
+                                                    <div class="tooltip-title">风险阈值</div>
+                                                    • 高度关注：历史进件次数 ≥ 5次<br>
+                                                    • 中度关注：历史进件次数 3-4次<br>
+                                                    • 轻度关注：历史进件次数 ≤ 2次<br><br>
+                                                     </div>
+                                            </div>
+                                        </div>
+                                        <span class="risk-tag">高度关注</span>
+                                    </div>
+                                    <div class="unified-risk-card-content">
+                                        <div class="unified-risk-item">
+                                            <span class="unified-risk-label">判定原因：</span>
+                                            <span>该结算人/营业执照历史进件7次</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="unified-risk-card high-risk">
+                                    <div class="unified-risk-card-header" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-user-check"></i>
+                                            <span class="risk-title">上游通道审核</span>
+                                            <i class="fas fa-info-circle info-icon" onclick="toggleTooltip(this)"></i>
+                                            <div class="tooltip">
+                                                <div class="tooltip-title">判定标准</div>
+                                                <div class="tooltip-content">
+                                                    接收上游通道审核结果<br>
+                                                    <div class="tooltip-title">风险阈值</div>
+                                                    • 高度关注：上游审核驳回<br>
+                                                   
+                                                    • 轻度关注：上游审核通过<br><br>
+                                                     </div>
+                                            </div>
+                                        </div>
+                                        <span class="risk-tag">高度关注</span>
+                                    </div>
+                                    <div class="unified-risk-card-content">
+                                        <div class="unified-risk-item">
+                                            <span class="unified-risk-label">判定原因：</span>
+                                            <span>上游审核驳回：身份证信息过期</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
                         </div>
-                        <div class="card-content">
-                            <div class="energy-table-container">
-                                <table class="energy-table">
-                                    <thead>
-                                        <tr>
-                                            <th>商户号</th>
-                                            <th>商户名称</th>
-                                            <th>市级分公司</th>
-                                            <th>区县分公司</th>
-                                            <th>营业所</th>
-                                            <th>已使用成本</th>
-                                            <th>实际收益</th>
-                                            <th>剩余补贴空间</th>
-                                            <th>已补贴比例</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>M202401001</td>
-                                            <td>张三便利店</td>
-                                            <td>北京分公司</td>
-                                            <td>朝阳区分公司</td>
-                                            <td rowspan="2">朝阳营业所</td>
-                                            <td>6,500元</td>
-                                            <td rowspan="2">27,000元</td>
-                                            <td rowspan="4">8,300元</td>
-                                            <td rowspan="4">69.2%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401002</td>
-                                            <td>张三超市</td>
-                                            <td>北京分公司</td>
-                                            <td>朝阳区分公司</td>
-                                            <td>4,200元</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401003</td>
-                                            <td>张三便利超市</td>
-                                            <td>北京分公司</td>
-                                            <td>海淀区分公司</td>
-                                            <td>海淀营业所</td>
-                                            <td>4,200元</td>
-                                            <td>12,000元</td>
-                                        </tr>
-                                        <tr>
-                                            <td>M202401004</td>
-                                            <td>张三商贸</td>
-                                            <td>北京分公司</td>
-                                            <td>丰台区分公司</td>
-                                            <td>丰台营业所</td>
-                                            <td>8,900元</td>
-                                            <td>18,500元</td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="5">汇总</td>
-                                            <td>23,800元</td>
-                                            <td>57,500元</td>
-                                            <td colspan="2"></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+
+                        <!-- 中度关注指标区域 -->
+                        <div class="risk-section">
+                            <div class="risk-section-title medium-risk">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                中度关注指标
+                            </div>
+                            <div class="risk-cards-grid">
+                                <div class="unified-risk-card medium-risk">
+                                    <div class="unified-risk-card-header" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-camera"></i>
+                                            <span class="risk-title">门头照重复</span>
+                                            <i class="fas fa-info-circle info-icon" onclick="toggleTooltip(this)"></i>
+                                            <div class="tooltip">
+                                                <div class="tooltip-title">判定标准</div>
+                                                <div class="tooltip-content">
+                                                    
+                                                    统计该商户门头照在平台信息库中（含本次）被重复使用次数<br>
+                                                    <div class="tooltip-title">风险阈值</div>
+                                                    • 高度关注：门头照重复使用 ≥ 5次<br>
+                                                    • 中度关注：门头照重复使用 2-4次<br>
+                                                    • 轻度关注：门头照使用1次<br><br>
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="risk-tag">中度关注</span>
+                                    </div>
+                                    <div class="unified-risk-card-content">
+                                        <div class="unified-risk-item">
+                                            <span class="unified-risk-label">判定原因：</span>
+                                            <span>门头照重复使用3次</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="unified-risk-card medium-risk">
+                                    <div class="unified-risk-card-header" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-cash-register"></i>
+                                            <span class="risk-title">收银台照重复</span>
+                                            <i class="fas fa-info-circle info-icon" onclick="toggleTooltip(this)"></i>
+                                            <div class="tooltip">
+                                                <div class="tooltip-title">判定标准</div>
+                                                <div class="tooltip-content">
+                                                    统计该商户收银台照在平台信息库中（含本次）被重复使用次数<br>
+                                                    <div class="tooltip-title">风险阈值</div>
+                                                    • 高度关注：收银台照重复使用 ≥ 5次<br>
+                                                    • 中度关注：收银台照重复使用 2-4次<br>
+                                                    • 轻度关注：收银台照使用1次<br><br>
+                                                   
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="risk-tag">中度关注</span>
+                                    </div>
+                                    <div class="unified-risk-card-content">
+                                        <div class="unified-risk-item">
+                                            <span class="unified-risk-label">判定原因：</span>
+                                            <span>收银台照重复使用2次</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="unified-risk-card medium-risk">
+                                    <div class="unified-risk-card-header" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-building"></i>
+                                            <span class="risk-title">场景照重复</span>
+                                            <i class="fas fa-info-circle info-icon" onclick="toggleTooltip(this)"></i>
+                                            <div class="tooltip">
+                                                <div class="tooltip-title">判定标准</div>
+                                                <div class="tooltip-content">
+                                                    统计该商户店内场景照在平台信息库中（含本次）被重复使用次数<br>
+                                                    <div class="tooltip-title">风险阈值</div>
+                                                    • 高度关注：场景照重复使用 ≥ 5次<br>
+                                                    • 中度关注：场景照重复使用 2-4次<br>
+                                                    • 轻度关注：场景照使用1次<br><br>
+                                                   
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="risk-tag">中度关注</span>
+                                    </div>
+                                    <div class="unified-risk-card-content">
+                                        <div class="unified-risk-item">
+                                            <span class="unified-risk-label">判定原因：</span>
+                                            <span>场景照重复使用4次</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 轻度关注指标区域 -->
+                        <div class="risk-section">
+                            <div class="risk-section-title low-risk">
+                                <i class="fas fa-check-circle"></i>
+                                轻度关注指标
+                            </div>
+                            <div class="risk-cards-grid">
+                                <div class="unified-risk-card low-risk">
+                                    <div class="unified-risk-card-header" style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-id-card"></i>
+                                            <span class="risk-title">三照导入方式</span>
+                                            <i class="fas fa-info-circle info-icon" onclick="toggleTooltip(this)"></i>
+                                            <div class="tooltip">
+                                                <div class="tooltip-title">判定标准</div>
+                                                <div class="tooltip-content">
+                                                 统计该商户门头、场景、收银台照上传方式为相册上传或拍摄上传<br>  
+                                                    <div class="tooltip-title">风险阈值</div>
+                                                    • 高度关注：三张均为相册上传<br>
+                                                    • 中度关注：1-2张为相册上传<br>
+                                                    • 轻度关注：三张均为拍摄上传<br><br>
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="risk-tag">轻度关注</span>
+                                    </div>
+                                    <div class="unified-risk-card-content">
+                                        <div class="unified-risk-item">
+                                            <span class="unified-risk-label">判定原因：</span>
+                                            <span>三张均为拍摄上传</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            <!-- </div> -->
+
+                <!-- 操作历史Tab -->
+                <div id="history-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h3 class="card-title1">操作记录</h3>
+                    </div>
+                    <div class="tab-body">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>操作时间</th>
+                                        <th>操作人</th>
+                                        <th>所属机构</th>
+
+                                        <th>操作类型</th>
+                                        <th>任务类型</th>
+                                        <th>备注</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                    <td>2024-01-18 17:30:00</td>
+                                    <td>System</td>
+                                    <td>内部</td>
+                                    <td>风险评估</td>
+                                    <td>--</td>
+                                    <td>商户资料风险评估更新：高度关注——>中度关注</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 16:50:00</td>
+                                        <td>System</td>
+                                        <td>内部</td>
+                                        <td>走访完成</td>
+                                        <td>打卡</td>
+                                        <td>系统自动更新</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 16:30:00</td>
+                                        <td>张经理</td>
+                                        <td>自贡市分公司</td>
+                                        <td>走访</td>
+                                        <td>打卡</td>
+                                        <td>高度关注商户，需走访确认</td>
+                                    </tr>
+                                     <tr>
+                                        <td>2024-01-15 15:20:00</td>
+                                        <td>System</td>
+                                        <td>内部</td>
+                                        <td>整改完成</td>
+                                        <td>资料补充</td>
+                                        <td>系统自动更新</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 15:00:00</td>
+                                        <td>张经理</td>
+                                        <td>广东省分公司</td>
+                                        <td>整改</td>
+                                        <td>资料补充</td>
+                                        <td>要求补充门头照片</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-14 16:20:00</td>
+                                        <td>张三</td>
+                                        <td>换码网点</td>
+                                        <td>标记</td>
+                                        <td>-</td>
+                                        <td>该商户审查没问题，记录</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-14 16:20:00</td>
+                                        <td>张三</td>
+                                        <td>换码网点</td>
+                                        <td>标记</td>
+                                        <td>-</td>
+                                        <td>该商户审查没问题，记录</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-13 16:20:00</td>
+                                        <td>System</td>
+                                        <td>内部</td>
+                                        <td>风险评估</td>
+                                        <td>-</td>
+                                        <td>商户首次资料风险评估：高度关注</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 底部功能按钮 -->
-    <div class="mobile-content mt-6 pb-6 space-y-3">
-        <button onclick="goBack()" class="w-full bg-postal-green text-white py-3 rounded-lg font-medium hover:bg-postal-green-dark transition-colors">
-            <i class="fas fa-arrow-left mr-2"></i>
+
+    <!-- 底部固定按钮区域 -->
+    <div class="fixed-bottom-actions">
+        <button class="btn btn-primary" onclick="createVisitTask()">
+            <i class="fas fa-map-marker-alt"></i>
+            下发走访任务
+        </button>
+        <button class="btn btn-warning" onclick="createRectificationTask()">
+            <i class="fas fa-tasks"></i>
+            下发整改任务
+        </button>
+        <button class="btn btn-success" onclick="markCompleted()">
+            <i class="fas fa-check"></i>
+            标记完成
+        </button>
+        <button class="btn btn-primary" id="btnReturnList">
+            <i class="fas fa-arrow-left"></i>
             返回
         </button>
     </div>
-
     <script>
         /**
-         * 切换Tab页签
-         * @param {string} tabName - tab名称 ('trade' 或 'subsidy')
+         * 返回列表按钮事件处理
+         * 关闭详情弹窗
          */
-        function switchTab(tabName) {
-            // 重置所有tab样式
-            document.getElementById('tab-trade').className = 'flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 tab-inactive';
-            document.getElementById('tab-subsidy').className = 'flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 tab-inactive';
-            
-            // 隐藏所有内容
-            document.getElementById('content-trade').classList.add('hidden');
-            document.getElementById('content-subsidy').classList.add('hidden');
-            
-            // 激活选中的tab
-            if (tabName === 'trade') {
-                document.getElementById('tab-trade').className = 'flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 tab-active';
-                document.getElementById('content-trade').classList.remove('hidden');
-            } else if (tabName === 'subsidy') {
-                document.getElementById('tab-subsidy').className = 'flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200 tab-active';
-                document.getElementById('content-subsidy').classList.remove('hidden');
-            }
-        }
-
-        /**
-         * 显示提示信息
-         * @param {HTMLElement} icon - 点击的提示图标元素
-         */
-        function showTooltip(icon, event) {
-            // 阻止事件冒泡
-            if (event) {
-                event.stopPropagation();
-            }
-            
-            // 隐藏所有tooltip
-            const allTooltips = document.querySelectorAll('.tooltip-content');
-            allTooltips.forEach(tooltip => {
-                tooltip.style.display = 'none';
-            });
-            
-            // 显示当前tooltip
-            const tooltip = icon.nextElementSibling;
-            if (tooltip && tooltip.classList.contains('tooltip-content')) {
-                // 获取图标位置
-                const iconRect = icon.getBoundingClientRect();
-                
-                // 设置tooltip样式
-                tooltip.style.display = 'block';
-                tooltip.style.position = 'fixed';
-                tooltip.style.zIndex = '99999';
-                tooltip.style.backgroundColor = '#333';
-                tooltip.style.color = '#fff';
-                tooltip.style.padding = '8px 12px';
-                tooltip.style.borderRadius = '4px';
-                tooltip.style.fontSize = '12px';
-                tooltip.style.maxWidth = '280px';
-                tooltip.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                
-                // 智能定位：在图标右侧，如果空间不够则在左侧
-                const tooltipWidth = 280;
-                const spacing = 10;
-                
-                let left = iconRect.right + spacing;
-                if (left + tooltipWidth > window.innerWidth) {
-                    left = iconRect.left - tooltipWidth - spacing;
-                }
-                
-                // 确保不超出屏幕边界
-                left = Math.max(10, Math.min(left, window.innerWidth - tooltipWidth - 10));
-                
-                // 垂直居中对齐图标
-                let top = iconRect.top + (iconRect.height / 2) - 20;
-                top = Math.max(10, Math.min(top, window.innerHeight - 100));
-                
-                tooltip.style.left = left + 'px';
-                tooltip.style.top = top + 'px';
-            }
-        }
-        
-
-
-        /**
-         * 交易预警级别筛选功能
-         * @param {string} level - 筛选级别 ('all', 'high', 'medium', 'low')
-         */
-        function filterTradeByLevel(level) {
-            // 更新按钮状态
-            const tradeFilterBtns = document.querySelectorAll('#content-trade .filter-btn');
-            tradeFilterBtns.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // 获取所有交易预警指标卡片
-            const tradeCards = document.querySelectorAll('#content-trade .indicator-card');
-            
-            tradeCards.forEach(card => {
-                if (level === 'all') {
-                    card.style.display = 'block';
-                } else {
-                    const cardLevel = card.getAttribute('data-level');
-                    card.style.display = cardLevel === level ? 'block' : 'none';
-                }
-            });
-        }
-
-        /**
-         * 补贴耗能预警级别筛选功能
-         * @param {string} level - 筛选级别 ('all', 'high', 'medium', 'low')
-         */
-        function filterSubsidyByLevel(level) {
-            // 更新按钮状态
-            const subsidyFilterBtns = document.querySelectorAll('#content-subsidy .filter-btn');
-            subsidyFilterBtns.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // 获取所有补贴耗能预警指标卡片
-            const subsidyCards = document.querySelectorAll('#content-subsidy .indicator-card');
-            
-            subsidyCards.forEach(card => {
-                if (level === 'all') {
-                    card.style.display = 'block';
-                } else {
-                    const cardLevel = card.getAttribute('data-level');
-                    card.style.display = cardLevel === level ? 'block' : 'none';
-                }
-            });
-        }
-
-        /**
-         * 返回交易排序页面
-         */
-        function goBack() {
-            // 跳转到交易排序页面
-            window.location.href = '交易排序.html';
-        }
-
-        /**
-         * 切换客户耗能详情Tab
-         * @param {string} tabName - Tab名称
-         */
-        function switchEnergyTab(tabName) {
-            // 移除所有Tab的active状态
-            const tabs = document.querySelectorAll('.energy-tab');
-            const tabContents = document.querySelectorAll('.energy-tab-content');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // 激活当前Tab
-            const activeTab = document.querySelector(`.energy-tab[onclick*="${tabName}"]`);
-            const activeContent = document.getElementById(`energy-${tabName}-tab`);
-            
-            if (activeTab && activeContent) {
-                activeTab.classList.add('active');
-                activeContent.classList.add('active');
-            }
-        }
-
-
-
-        /**
-         * 查询往期耗能数据
-         */
-        function queryEnergyHistoryData() {
-            const startMonth = document.getElementById('energyStartMonth').value;
-            const endMonth = document.getElementById('energyEndMonth').value;
-            
-            if (!startMonth || !endMonth) {
-                alert('请选择查询时间范围');
-                return;
-            }
-            
-            if (startMonth > endMonth) {
-                alert('开始时间不能大于结束时间');
-                return;
-            }
-            
-            console.log(`查询往期耗能数据: ${startMonth} 至 ${endMonth}`);
-            alert(`正在查询 ${startMonth} 至 ${endMonth} 的耗能数据...`);
-        }
-
-        /**
-         * 重置耗能筛选条件
-         */
-        function resetEnergyFilter() {
-            document.getElementById('energyStartMonth').value = '2025-08';
-            document.getElementById('energyEndMonth').value = '2025-08';
-        }
-
-        // 权限控制变量 - 可以通过后端接口或其他方式动态设置
-        let hasEnergyPermission = false; // 默认无权限，可以设置为true开启权限
-
-        /**
-         * 设置权限状态
-         * @param {boolean} hasPermission - 是否有权限
-         */
-        function setEnergyPermission(hasPermission) {
-            hasEnergyPermission = hasPermission;
-            updateUIByPermission();
-        }
-
-        /**
-         * 根据权限状态更新UI显示
-         */
-        function updateUIByPermission() {
-            const subsidyTab = document.getElementById('tab-subsidy');
-            const subsidyContent = document.getElementById('content-subsidy');
-            const energyModule = document.getElementById('energy-detail-module');
-            
-            if (hasEnergyPermission) {
-                // 有权限：显示补贴耗能预警Tab按钮和客户耗能详情模块
-                if (subsidyTab) subsidyTab.style.display = 'block';
-                // 不修改content-subsidy的显示，由switchTab统一管理
-                if (energyModule) energyModule.style.display = 'block';
-            } else {
-                // 无权限：隐藏补贴耗能预警Tab与客户耗能详情模块
-                if (subsidyTab) subsidyTab.style.display = 'none';
-                if (subsidyContent) subsidyContent.classList.add('hidden');
-                if (energyModule) energyModule.style.display = 'none';
-                
-                // 若当前激活的是补贴耗能预警Tab，切回交易预警Tab
-                const subsidyTabBtn = document.getElementById('tab-subsidy');
-                if (subsidyTabBtn && subsidyTabBtn.classList.contains('tab-active')) {
-                    switchTab('trade');
-                }
-            }
-        }
-
-        /**
-         * 切换权限状态（用于测试）
-         */
-        function togglePermission() {
-            hasEnergyPermission = !hasEnergyPermission;
-            updateUIByPermission();
-            
-            const status = hasEnergyPermission ? '有权限' : '无权限';
-            console.log(`权限状态已切换为: ${status}`);
-            
-            // 可以添加提示信息
-            const message = hasEnergyPermission ? 
-                '权限已开启：显示所有模块内容' : 
-                '权限已关闭：隐藏补贴耗能预警和客户耗能详情模块';
-            alert(message);
-        }
-
-        /**
-         * 初始化页面
-         */
-        function initPage() {
-            // 从URL参数获取商户名称
-            const urlParams = new URLSearchParams(window.location.search);
-            const merchantName = urlParams.get('merchant');
-            
-            if (merchantName) {
-                document.getElementById('merchant-name').textContent = decodeURIComponent(merchantName);
-                document.getElementById('page-title').textContent = `${decodeURIComponent(merchantName)} - 详情`;
-            }
-            
-            // 应用权限控制
-            updateUIByPermission();
-            
-            // 默认显示交易预警指标tab
-            switchTab('trade');
-            
-            console.log('页面初始化完成，权限状态:', hasEnergyPermission ? '有权限' : '无权限');
-        }
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            initPage();
-            
-            // 点击外部区域关闭所有提示框
-            document.addEventListener('click', function(event) {
-                if (!event.target.closest('.tooltip')) {
-                    document.querySelectorAll('.tooltip-content').forEach(content => {
-                        content.style.display = 'none';
-                    });
-                }
-            });
-            
-            // 测试tooltip功能
-            console.log('页面加载完成，tooltip功能已初始化');
-            console.log('找到的tooltip图标数量:', document.querySelectorAll('.tooltip-icon').length);
-        });
-
-        /**
-         * 显示补贴计算器弹窗
-         */
-        function showEnergyAdvice() {
-            document.getElementById('calculator-modal').style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // 防止背景滚动
-        }
-
-        /**
-         * 关闭补贴计算器弹窗
-         */
-        function closeCalculatorModal() {
-            document.getElementById('calculator-modal').style.display = 'none';
-            document.body.style.overflow = 'auto'; // 恢复背景滚动
-        }
-
-      
-
-        /**
-         * 计算补贴
-         */
-        function calculateSubsidy() {
-            // 模拟计算逻辑
-            const randomResult = (Math.random() * 5000 + 1000).toFixed(2);
-            
-            document.getElementById('calculation-result').style.display = 'block';
-            document.getElementById('result-value').textContent = randomResult;
-        }
-
-        /**
-         * 复制计算结果
-         */
-        function copyResult() {
-            const resultValue = document.getElementById('result-value').textContent;
-            
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(`补贴建议金额：${resultValue}元`).then(() => {
-                    alert('计算结果已复制到剪贴板');
+        document.addEventListener('DOMContentLoaded', function () {
+            var btnReturnList = document.getElementById('btnReturnList');
+            if (btnReturnList) {
+                btnReturnList.addEventListener('click', function () {
+                    // 关闭详情弹窗
+                    if (typeof closeDetailModal === 'function') {
+                        closeDetailModal();
+                    } else {
+                        // 兼容性处理：如果没有定义closeDetailModal，则尝试隐藏父弹窗
+                        var parentModal = window.parent && window.parent.document.getElementById('detailModal');
+                        if (parentModal) {
+                            parentModal.style.display = 'none';
+                        }
+                    }
                 });
-            } else {
-                // 兼容旧浏览器
-                const textArea = document.createElement('textarea');
-                textArea.value = `补贴建议金额：${resultValue}元`;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('计算结果已复制到剪贴板');
             }
-        }
+        });
     </script>
 
-    <!-- 补贴计算器弹窗 -->
-    <div id="calculator-modal" class="calculator-modal">
-        <div class="calculator-modal-content">
-            <div class="calculator-modal-header">
-                <h3 class="calculator-modal-title">补贴计算器</h3>
-                <button class="calculator-close-btn" onclick="closeCalculatorModal()">&times;</button>
+    <!-- 标记完成弹框 -->
+    <div id="markCompletedModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>标记审查完成</h3>
+                <button class="modal-close" onclick="closeMarkCompletedModal()">&times;</button>
             </div>
-            <div class="calculator-modal-body">
-                <!-- 剩余补贴空间 -->
-                <div class="calculator-subsidy-info">
-                    <div class="calculator-subsidy-item">
-                        <div class="calculator-subsidy-label">网点剩余补贴空间</div>
-                        <div class="calculator-subsidy-value">4,300元</div>
-                    </div>
-                    <div class="calculator-subsidy-item">
-                        <div class="calculator-subsidy-label">全省剩余补贴空间</div>
-                        <div class="calculator-subsidy-value">5,600元</div>
-                    </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>审查状态</label>
+                    <input type="text" value="已完成" readonly class="form-control">
                 </div>
-
-                
-
-                <!-- 计算项目 -->
-                <div id="calculation-items">
-                    <div class="calculator-form-row calculation-item">
-                        <div class="calculator-form-label">项目类型</div>
-                        <select class="calculator-form-select">
-                            <option value="">请选择项目类型</option>
-                            <option value="type1">类型一</option>
-                            <option value="type2">类型二</option>
-                            <option value="type3">类型三</option>
-                        </select>
-                    </div>
-
-                    <div class="calculator-form-row">
-                        <div class="calculator-form-label">收益率%</div>
-                        <input type="number" class="calculator-form-input" placeholder="请输入收益率(%)" />
-                    </div>
-
-                    <div class="calculator-form-row">
-                        <div class="calculator-form-label">收益金额(元)</div>
-                        <input type="number" class="calculator-form-input" placeholder="请输入收益金额(元)" />
-                    </div>
-
-                    <div class="calculator-form-row">
-                        <div class="calculator-form-label">留存月数</div>
-                        <input type="number" class="calculator-form-input" placeholder="请输入留存月数" />
-                    </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="completedRemark" class="form-control" rows="3" placeholder="请输入备注信息..."></textarea>
                 </div>
-
-                <!-- 操作按钮 -->
-                <button class="calculator-btn calculator-btn-primary" onclick="">
-                    <i class="fas fa-plus"></i> 添加项目
-                </button>
-
-                <button class="calculator-btn calculator-btn-success" onclick="calculateSubsidy()">
-                    <i class="fas fa-calculator"></i> 计算补贴
-                </button>
-
-                <!-- 计算结果 -->
-                <div id="calculation-result" class="calculator-result">
-                    <div class="calculator-result-label">业务金额</div>
-                    <div class="calculator-result-value" id="result-value">0.00</div>
-                    <button class="calculator-btn calculator-btn-primary" onclick="copyResult()">
-                        <i class="fas fa-copy"></i> 复制结果
-                    </button>
-                </div>
-                <br>
-                <!-- 温馨提示 -->
-                <div class="calculator-tip">
-                    <strong>温馨提示：</strong>
-                    温馨提示：额度计算结果仅为参考值，实际补贴额度可以在此基础上结合实际情况进行额度下浮
-                </div>
-
-                <br>
-                <!-- 使用说明 -->
-                <div class="calculator-description">
-                    <h4>使用说明</h4>
-                    <p>本计算器结合2025年分润指导意见及补贴包应用标准进行计算，主要变化点：</p>
-                    <p>1. 按2025年业务置换补贴主要集中在活期、保险业务等，取消定期、理财的额度减免；</p>
-                    <p>2. 活期存款每月额度计算公式=业务金额*1.8%/12个月；</p>
-                    <p>3. 保险额度计算公式：趸交业务=业务金额*1.5%；3年交业务=业务金额（首年保费）*5%；5年交业务=业务金额（首年保费）*10%；（注：保险置换额度为一次性补贴额度，期交次年缴费不再进行补贴）；</p>
-                    <p>4. 非货币基金额度计算公式-申购金额*0.64%（基金置换额度为一次性补贴额度）。</p>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeMarkCompletedModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmMarkCompleted()">确认</button>
             </div>
         </div>
     </div>
+
+    <!-- 下发整改任务弹框 -->
+    <div id="rectificationModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>下发整改任务</h3>
+                <button class="modal-close" onclick="closeRectificationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 选中的任务类型将在这里动态显示 -->
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="rectificationRemark" class="form-control" rows="3"
+                        placeholder="请输入备注信息..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRectificationModal()">取消</button>
+                <button class="btn btn-warning" onclick="confirmRectificationTask()">确认下发</button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- 下发走访任务弹框 -->
+    <div id="visitTaskModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>下发走访任务</h3>
+                <button class="modal-close" onclick="closeVisitTaskModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>走访类型</label>
+                    <!-- 只读展示，默认为“打卡” -->
+                    <input type="text" class="form-control" id="visitType" value="打卡" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>走访说明</label>
+                    <textarea id="visitRemark" class="form-control" rows="3" placeholder="请输入说明..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeVisitTaskModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmVisitTask()">确认下发</button>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
 </body>
+
+<script>
+
+
+    /**
+     * Tab切换功能
+     * @param {string} tabName - tab名称 (audit, risk, history)
+     */
+    function switchTab(tabName) {
+        console.log('Switching to tab:', tabName);
+
+        // 移除所有tab按钮和内容的active类
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+            // 确保内容被隐藏
+            content.style.display = 'none';
+        });
+
+        // 添加active类到当前tab按钮
+        document.querySelectorAll('.tab').forEach(tab => {
+            const onclick = tab.getAttribute('onclick');
+            if (onclick && onclick.includes(`'${tabName}'`)) {
+                tab.classList.add('active');
+            }
+        });
+
+        // 显示对应的tab内容
+        const targetTab = document.getElementById(tabName + '-tab');
+        console.log('Target tab element:', targetTab);
+
+        if (targetTab) {
+            // 使用CSS类来控制显示，因为CSS中使用了!important
+            targetTab.classList.add('active');
+            // 确保内容显示
+            targetTab.style.display = 'block';
+            console.log('Tab switched successfully to:', tabName);
+        } else {
+            console.error('Tab content not found for:', tabName + '-tab');
+        }
+    }
+
+
+
+    // 卡片选择功能
+    function toggleCardSelection(checkbox) {
+        const card = checkbox.closest('.info-card');
+        if (checkbox.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    }
+
+    // 卡片展开/收起功能
+    function toggleCardExpansion(header) {
+        const card = header.closest('.info-card');
+        const content = card.querySelector('.card-content');
+        const toggleIcon = header.querySelector('.toggle-icon');
+        const toggleText = header.querySelector('.card-toggle span');
+
+        if (content.classList.contains('collapsed')) {
+            content.classList.remove('collapsed');
+            toggleIcon.classList.add('expanded');
+            toggleText.textContent = '收起';
+        } else {
+            content.classList.add('collapsed');
+            toggleIcon.classList.remove('expanded');
+            toggleText.textContent = '展开';
+        }
+    }
+
+    // 获取选中的任务类型
+    function getSelectedTaskTypes() {
+        const selectedCards = document.querySelectorAll('.info-card.selectable.selected');
+        return Array.from(selectedCards).map(card => card.getAttribute('data-task-type'));
+    }
+
+    // 显示Toast提示
+    function showToast(message, type = 'error') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 3000);
+    }
+
+    // 兼容旧的模块选择功能
+    function toggleSectionSelection(checkbox) {
+        toggleCardSelection(checkbox);
+    }
+
+    // 创建走访任务
+    function createVisitTask() {
+        document.getElementById('visitTaskModal').style.display = 'block';
+    }
+
+    function closeVisitTaskModal() {
+        document.getElementById('visitTaskModal').style.display = 'none';
+        document.getElementById('visitType').value = '打卡';
+        document.getElementById('visitRemark').value = '';
+    }
+
+    function confirmVisitTask() {
+        const visitType = document.getElementById('visitType').value;
+        const remark = document.getElementById('visitRemark').value;
+
+        // 生成任务编号
+        const taskId = 'VT' + new Date().getFullYear() +
+            String(new Date().getMonth() + 1).padStart(2, '0') +
+            String(new Date().getDate()).padStart(2, '0') +
+            String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+
+        // 添加操作历史记录
+        addOperationHistory('走访', visitType,
+            `备注：' + visitRemark : ''}`);
+
+        closeVisitTaskModal();
+        alert(`走访任务已下发，任务编号：${taskId}`);
+    }
+
+    // 添加风险卡片悬停效果
+    document.addEventListener('DOMContentLoaded', function () {
+        const riskCards = document.querySelectorAll('.risk-card');
+        riskCards.forEach(card => {
+            card.addEventListener('mouseenter', function () {
+                this.style.transform = 'translateY(-4px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function () {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    });
+
+
+    // 获取URL参数
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function () {
+        // 获取商户ID
+        const merchantId = getUrlParameter('id');
+        if (merchantId) {
+            document.querySelector('.page-title').textContent = `商户详情 - ${merchantId}`;
+            // 这里可以根据商户ID加载具体数据
+        }
+
+        // 默认激活第一个tab（风险评估）
+        switchTab('risk');
+
+        // 点击页面其他区域时隐藏所有提示框
+        document.addEventListener('click', function(event) {
+            // 如果点击的不是信息图标或提示框内容，则隐藏所有提示框
+            if (!event.target.classList.contains('info-icon') &&
+                !event.target.closest('.tooltip')) {
+                hideAllTooltips();
+            }
+        });
+
+        // 阻止提示框内部点击事件冒泡
+        document.querySelectorAll('.tooltip').forEach(tooltip => {
+            tooltip.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+
+        // 弹框背景点击关闭
+        const modals = ['markCompletedModal', 'rectificationModal', 'visitTaskModal'];
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        // ESC键关闭弹框
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                modals.forEach(modalId => {
+                    const modal = document.getElementById(modalId);
+                    if (modal && modal.style.display === 'block') {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        });
+    });
+
+    // 标记完成功能
+    function markCompleted() {
+        document.getElementById('markCompletedModal').style.display = 'block';
+    }
+
+    function closeMarkCompletedModal() {
+        document.getElementById('markCompletedModal').style.display = 'none';
+        document.getElementById('completedRemark').value = '';
+    }
+
+    function confirmMarkCompleted() {
+        const remark = document.getElementById('completedRemark').value;
+
+        // 更新审查状态
+        const statusElement = document.querySelector('.info-item .info-value .status-tag');
+        if (statusElement) {
+            statusElement.className = 'status-tag status-completed';
+            statusElement.textContent = '已完成';
+        }
+
+        // 添加操作历史记录
+        addOperationHistory('标记完成', '审查完成', remark || '无');
+
+        closeMarkCompletedModal();
+        alert('审查状态已更新为"已完成"');
+    }
+
+    // 下发整改任务功能 - 重写原有函数
+    function createRectificationTask() {
+        // 获取选中的任务类型
+        const selectedTaskTypes = getSelectedTaskTypes();
+
+        // 检查是否有勾选的卡片
+        if (selectedTaskTypes.length === 0) {
+            showToast('请先在商户详情页签下勾选要整改的任务', 'error');
+            return;
+        }
+
+        // 显示弹窗
+        document.getElementById('rectificationModal').style.display = 'block';
+
+        // 在弹窗中显示选中的任务类型
+        setTimeout(() => {
+            displaySelectedTaskTypes(selectedTaskTypes);
+        }, 100);
+    }
+
+    // 显示选中的任务类型标签
+    function displaySelectedTaskTypes(taskTypes) {
+        // 查找弹窗中的表单区域
+        const modalBody = document.querySelector('#rectificationModal .modal-body');
+        if (!modalBody) return;
+
+        // 检查是否已经有任务类型容器
+        let taskTypeContainer = document.getElementById('selectedTaskTypesContainer');
+        if (!taskTypeContainer) {
+            // 创建任务类型显示容器
+            taskTypeContainer = document.createElement('div');
+            taskTypeContainer.id = 'selectedTaskTypesContainer';
+            taskTypeContainer.className = 'form-group';
+            taskTypeContainer.innerHTML = `
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">选中的任务类型</label>
+                                <div class="task-type-tags" id="taskTypeTags" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;"></div>
+                            `;
+
+            // 插入到表单顶部（在注释后面）
+            const firstElement = modalBody.children[0];
+            modalBody.insertBefore(taskTypeContainer, firstElement);
+        }
+
+        // 更新任务类型标签
+        const tagsContainer = document.getElementById('taskTypeTags');
+        if (tagsContainer) {
+            tagsContainer.innerHTML = '';
+
+            taskTypes.forEach(taskType => {
+                const tag = document.createElement('span');
+                tag.className = 'task-type-tag';
+                tag.textContent = taskType;
+                tag.style.cssText = `
+                                    background: var(--primary-blue-light);
+                                    color: var(--primary-blue);
+                                    padding: 6px 12px;
+                                    border-radius: 20px;
+                                    font-size: 12px;
+                                    font-weight: 500;
+                                    display: inline-block;
+                                `;
+                tagsContainer.appendChild(tag);
+            });
+        }
+    }
+
+    function closeRectificationModal() {
+        document.getElementById('rectificationModal').style.display = 'none';
+        // 清空任务类型容器
+        const taskTypeContainer = document.getElementById('selectedTaskTypesContainer');
+        if (taskTypeContainer) {
+            taskTypeContainer.remove();
+        }
+        // 清空备注
+        document.getElementById('rectificationRemark').value = '';
+    }
+
+    // 切换提示框显示状态
+    function toggleTooltip(iconElement) {
+        const tooltip = iconElement.nextElementSibling;
+        const isVisible = tooltip.classList.contains('show');
+
+        // 隐藏所有其他提示框
+        document.querySelectorAll('.tooltip.show').forEach(tip => {
+            tip.classList.remove('show');
+        });
+
+        // 切换当前提示框
+        if (!isVisible) {
+            tooltip.classList.add('show');
+        }
+    }
+
+    // 点击其他区域隐藏提示框
+    function hideAllTooltips() {
+        document.querySelectorAll('.tooltip.show').forEach(tip => {
+            tip.classList.remove('show');
+        });
+    }
+
+
+
+
+
+    function confirmRectificationTask() {
+        // 获取选中的任务类型
+        const taskTypes = getSelectedTaskTypes();
+        const remark = document.getElementById('rectificationRemark').value;
+
+        if (taskTypes.length === 0) {
+            alert('请选择至少一个任务类型');
+            return;
+        }
+
+        // 生成任务编号
+        const taskId = 'RT' + new Date().getFullYear() +
+            String(new Date().getMonth() + 1).padStart(2, '0') +
+            String(new Date().getDate()).padStart(2, '0') +
+            String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+
+        // 添加操作历史记录
+        addOperationHistory('下发整改任务', '整改任务',
+            `任务类型：${taskTypes.join('、')}${remark ? '；备注：' + remark : ''}`);
+
+        closeRectificationModal();
+        // alert(`整改任务已下发，任务编号：${taskId}`);
+    }
+
+    // 添加操作历史记录
+    function addOperationHistory(operationType, taskType, remark) {
+        const historyTable = document.querySelector('#history-tab .table tbody');
+        if (historyTable) {
+            const now = new Date();
+            const timeString = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                    <td>${timeString}</td>
+                    <td>审查员001</td>
+                    <td>${operationType}</td>
+                    <td>${taskType}</td>
+                    <td>${remark}</td>
+                    
+                `;
+            historyTable.insertBefore(newRow, historyTable.firstChild);
+        }
+    }
+
+
+</script>
+
+
 </html>
